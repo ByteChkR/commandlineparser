@@ -33,14 +33,14 @@ namespace CommandLine
         /// <summary>
         /// Initializes a new instance of the <see cref="ParserSettings"/> class.
         /// </summary>
-        public ParserSettings()
+        public ParserSettings(int? maxDisplayWidth = null)
         {
             caseSensitive = true;
             caseInsensitiveEnumValues = false;
             autoHelp = true;
             autoVersion = true;
             parsingCulture = CultureInfo.InvariantCulture;
-            maximumDisplayWidth = GetWindowWidth();
+            maximumDisplayWidth = maxDisplayWidth ?? GetWindowWidth();
             getoptMode = false;
             enableDashDash = Maybe.Nothing<bool>();
             allowMultiInstance = Maybe.Nothing<bool>();
