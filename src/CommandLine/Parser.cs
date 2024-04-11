@@ -44,6 +44,14 @@ namespace CommandLine
             settings.Consumed = true;
         }
 
+        public Parser(Func<ParserSettings> factory)
+        {
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
+
+            settings = factory();
+            settings.Consumed = true;
+        }
+        
         internal Parser(ParserSettings settings)
         {
             this.settings = settings;

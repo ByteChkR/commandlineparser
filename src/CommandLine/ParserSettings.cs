@@ -14,7 +14,9 @@ namespace CommandLine
     /// </summary>
     public class ParserSettings : IDisposable
     {
-        private const int DefaultMaximumLength = 80; // default console width
+        public static ParserSettings CreateDefault(int? maxDisplayWidth = null) => new ParserSettings(maxDisplayWidth);
+        
+        public const int DefaultMaximumLength = 80; // default console width
 
         private bool disposed;
         private bool caseSensitive;
