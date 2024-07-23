@@ -3,10 +3,10 @@
 using System;
 using System.Globalization;
 using System.Text;
-
 namespace CommandLine.Infrastructure
 {
-    static class StringExtensions
+
+    internal static class StringExtensions
     {
         public static string ToOneCharString(this char c)
         {
@@ -55,8 +55,8 @@ namespace CommandLine.Infrastructure
 
         public static string JoinTo(this string value, params string[] others)
         {
-            var builder = new StringBuilder(value);
-            foreach (var v in others)
+            StringBuilder builder = new StringBuilder(value);
+            foreach (string v in others)
             {
                 builder.Append(v);
             }
@@ -65,8 +65,7 @@ namespace CommandLine.Infrastructure
 
         public static bool IsBooleanString(this string value)
         {
-            return value.Equals("true", StringComparison.OrdinalIgnoreCase)
-                || value.Equals("false", StringComparison.OrdinalIgnoreCase);
+            return value.Equals("true", StringComparison.OrdinalIgnoreCase) || value.Equals("false", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool ToBoolean(this string value)
@@ -76,20 +75,18 @@ namespace CommandLine.Infrastructure
 
         public static bool ToBooleanLoose(this string value)
         {
-            if ((string.IsNullOrEmpty(value)) ||
-                (value == "0") ||
-                (value.Equals("f", StringComparison.OrdinalIgnoreCase)) ||
-                (value.Equals("n", StringComparison.OrdinalIgnoreCase)) ||
-                (value.Equals("no", StringComparison.OrdinalIgnoreCase)) ||
-                (value.Equals("off", StringComparison.OrdinalIgnoreCase)) ||
-                (value.Equals("false", StringComparison.OrdinalIgnoreCase)))
+            if (string.IsNullOrEmpty(value) ||
+                value == "0" ||
+                value.Equals("f", StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("n", StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("no", StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("off", StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("false", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
-            else
-            {
-                return true;
-            }
+            return true;
         }
     }
+
 }

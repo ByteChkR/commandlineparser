@@ -3,15 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 namespace CommandLine.Infrastructure
 {
-    static class EnumerableExtensions
+
+    internal static class EnumerableExtensions
     {
         public static int IndexOf<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            var index = -1;
-            foreach (var item in source)
+            int index = -1;
+            foreach (TSource item in source)
             {
                 index++;
                 if (predicate(item))
@@ -24,7 +24,7 @@ namespace CommandLine.Infrastructure
 
         public static object ToUntypedArray(this IEnumerable<object> value, Type type)
         {
-            var array = Array.CreateInstance(type, value.Count());
+            Array array = Array.CreateInstance(type, value.Count());
             value.ToArray().CopyTo(array, 0);
             return array;
         }
@@ -35,9 +35,12 @@ namespace CommandLine.Infrastructure
         }
 
         /// <summary>
-        /// Breaks a collection into groups of a specified size.
+        ///     Breaks a collection into groups of a specified size.
         /// </summary>
-        /// <param name="source">A collection of <typeparam name="T"/>.</param>
+        /// <param name="source">A collection of
+        ///     <typeparam name="T" />
+        ///     .
+        /// </param>
         /// <param name="groupSize">The number of items each group shall contain.</param>
         /// <returns>An enumeration of T[].</returns>
         /// <remarks>An incomplete group at the end of the source collection will be silently dropped.</remarks>
@@ -51,7 +54,7 @@ namespace CommandLine.Infrastructure
             T[] group = new T[groupSize];
             int groupIndex = 0;
 
-            foreach (var item in source)
+            foreach (T item in source)
             {
                 group[groupIndex++] = item;
 
@@ -65,4 +68,5 @@ namespace CommandLine.Infrastructure
             }
         }
     }
+
 }

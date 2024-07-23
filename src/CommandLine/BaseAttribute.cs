@@ -2,49 +2,46 @@
 
 using System;
 
+using CommandLine.Infrastructure;
 namespace CommandLine
 {
+
     /// <summary>
-    /// Models a base attribute to define command line syntax.
+    ///     Models a base attribute to define command line syntax.
     /// </summary>
     public abstract class BaseAttribute : Attribute
     {
-        private int min;
+        private readonly LocalizableAttributeProperty helpText;
         private int max;
-        private object @default;
-        private Infrastructure.LocalizableAttributeProperty helpText;
         private string metaValue;
+        private int min;
         private Type resourceType;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CommandLine.BaseAttribute"/> class.
+        ///     Initializes a new instance of the <see cref="CommandLine.BaseAttribute" /> class.
         /// </summary>
         protected internal BaseAttribute()
         {
             min = -1;
             max = -1;
-            helpText = new Infrastructure.LocalizableAttributeProperty(nameof(HelpText));
+            helpText = new LocalizableAttributeProperty(nameof(HelpText));
             metaValue = string.Empty;
             resourceType = null;
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether a command line option is required.
+        ///     Gets or sets a value indicating whether a command line option is required.
         /// </summary>
-        public bool Required
-        {
-            get;
-            set;
-        }
+        public bool Required { get; set; }
 
         /// <summary>
-        /// When applied to <see cref="System.Collections.Generic.IEnumerable{T}"/> properties defines
-        /// the lower range of items.
+        ///     When applied to <see cref="System.Collections.Generic.IEnumerable{T}" /> properties defines
+        ///     the lower range of items.
         /// </summary>
         /// <remarks>If not set, no lower range is enforced.</remarks>
         public int Min
         {
-            get { return min; }
+            get => min;
             set
             {
                 if (value < 0)
@@ -57,13 +54,13 @@ namespace CommandLine
         }
 
         /// <summary>
-        /// When applied to <see cref="System.Collections.Generic.IEnumerable{T}"/> properties defines
-        /// the upper range of items.
+        ///     When applied to <see cref="System.Collections.Generic.IEnumerable{T}" /> properties defines
+        ///     the upper range of items.
         /// </summary>
         /// <remarks>If not set, no upper range is enforced.</remarks>
         public int Max
         {
-            get { return max; }
+            get => max;
             set
             {
                 if (value < 0)
@@ -76,32 +73,25 @@ namespace CommandLine
         }
 
         /// <summary>
-        /// Gets or sets mapped property default value.
+        ///     Gets or sets mapped property default value.
         /// </summary>
-        public object Default
-        {
-            get { return @default; }
-            set
-            {
-                @default = value;
-            }
-        }
+        public object Default { get; set; }
 
         /// <summary>
-        /// Gets or sets a short description of this command line option. Usually a sentence summary.
+        ///     Gets or sets a short description of this command line option. Usually a sentence summary.
         /// </summary>
         public string HelpText
         {
-            get => helpText.Value??string.Empty;
+            get => helpText.Value ?? string.Empty;
             set => helpText.Value = value ?? throw new ArgumentNullException("value");
         }
 
         /// <summary>
-        /// Gets or sets mapped property meta value. Usually an uppercase hint of required value type.
+        ///     Gets or sets mapped property meta value. Usually an uppercase hint of required value type.
         /// </summary>
         public string MetaValue
         {
-            get { return metaValue; }
+            get => metaValue;
             set
             {
                 if (value == null)
@@ -114,25 +104,19 @@ namespace CommandLine
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether a command line option is visible in the help text.
+        ///     Gets or sets a value indicating whether a command line option is visible in the help text.
         /// </summary>
-        public bool Hidden
-        {
-            get;
-            set;
-        }
+        public bool Hidden { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="System.Type"/> that contains the resources for <see cref="HelpText"/>.
+        ///     Gets or sets the <see cref="System.Type" /> that contains the resources for <see cref="HelpText" />.
         /// </summary>
         public Type ResourceType
         {
-            get { return resourceType; }
-            set
-            {
-                resourceType =
+            get => resourceType;
+            set => resourceType =
                 helpText.ResourceType = value;
-            }
         }
     }
+
 }

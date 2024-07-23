@@ -1,14 +1,14 @@
 // Copyright 2005-2015 Giacomo Stelluti Scala & Contributors. All rights reserved. See License.md in the project root for license information.
 
-using CSharpx;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using CSharpx;
 namespace CommandLine.Core
 {
-    static class SpecificationPropertyRules
+
+    internal static class SpecificationPropertyRules
     {
         public static IEnumerable<Func<IEnumerable<SpecificationProperty>, IEnumerable<Error>>>
             Lookup(
@@ -23,21 +23,21 @@ namespace CommandLine.Core
                 bool allowMultiInstance)
         {
             return new List<Func<IEnumerable<SpecificationProperty>, IEnumerable<Error>>>
-                {
-                    EnforceMutuallyExclusiveSet(),
-                    EnforceGroup(),
-                    EnforceMutuallyExclusiveSetAndGroupAreNotUsedTogether(),
-                    EnforceRequired(),
-                    EnforceRange(),
-                    EnforceSingle(tokens, allowMultiInstance)
-                };
+            {
+                EnforceMutuallyExclusiveSet(),
+                EnforceGroup(),
+                EnforceMutuallyExclusiveSetAndGroupAreNotUsedTogether(),
+                EnforceRequired(),
+                EnforceRange(),
+                EnforceSingle(tokens, allowMultiInstance),
+            };
         }
 
         private static Func<IEnumerable<SpecificationProperty>, IEnumerable<Error>> EnforceMutuallyExclusiveSetAndGroupAreNotUsedTogether()
         {
             return specProps =>
             {
-                var options =
+                IEnumerable<OptionSpecification> options =
                     from sp in specProps
                     where sp.Specification.IsOption()
                     let o = (OptionSpecification)sp.Specification
@@ -48,7 +48,7 @@ namespace CommandLine.Core
                 if (options.Any())
                 {
                     return from o in options
-                           select new GroupOptionAmbiguityError(new NameInfo(o.ShortName, o.LongName));
+                        select new GroupOptionAmbiguityError(new NameInfo(o.ShortName, o.LongName));
                 }
 
                 return Enumerable.Empty<Error>();
@@ -67,13 +67,14 @@ namespace CommandLine.Core
                     select new
                     {
                         Option = o,
-                        Value = sp.Value,
-                        DefaultValue = sp.Specification.DefaultValue
+                        sp.Value,
+                        sp.Specification.DefaultValue,
                     };
 
                 var groups = from o in optionsValues
-                             group o by o.Option.Group into g
-                             select g;
+                    group o by o.Option.Group
+                    into g
+                    select g;
 
                 var errorGroups = groups.Where(gr => gr.All(g => g.Value.IsNothing() && g.DefaultValue.IsNothing()));
 
@@ -90,16 +91,17 @@ namespace CommandLine.Core
         {
             return specProps =>
             {
-                var options =
+                IEnumerable<OptionSpecification> options =
                     from sp in specProps
                     where sp.Specification.IsOption()
                     where sp.Value.IsJust()
                     let o = (OptionSpecification)sp.Specification
                     where o.SetName.Length > 0
                     select o;
-                var groups = from o in options
-                             group o by o.SetName into g
-                             select g;
+                IEnumerable<IGrouping<string, OptionSpecification>> groups = from o in options
+                    group o by o.SetName
+                    into g
+                    select g;
                 if (groups.Count() > 1)
                 {
                     return
@@ -114,29 +116,29 @@ namespace CommandLine.Core
         {
             return specProps =>
             {
-                var requiredWithValue = from sp in specProps
-                                        where sp.Specification.IsOption()
-                                        where sp.Specification.Required
-                                        where sp.Value.IsJust()
-                                        let o = (OptionSpecification)sp.Specification
-                                        where o.SetName.Length > 0
-                                        select sp.Specification;
-                var setWithRequiredValue = (
-                    from s in requiredWithValue
-                    let o = (OptionSpecification)s
+                IEnumerable<Specification> requiredWithValue = from sp in specProps
+                    where sp.Specification.IsOption()
+                    where sp.Specification.Required
+                    where sp.Value.IsJust()
+                    let o = (OptionSpecification)sp.Specification
                     where o.SetName.Length > 0
-                    select o.SetName)
-                        .Distinct();
-                var requiredWithoutValue = from sp in specProps
-                                           where sp.Specification.IsOption()
-                                           where sp.Specification.Required
-                                           where sp.Value.IsNothing()
-                                           let o = (OptionSpecification)sp.Specification
-                                           where o.SetName.Length > 0
-                                           where o.Group.Length == 0
-                                           where setWithRequiredValue.ContainsIfNotEmpty(o.SetName)
-                                           select sp.Specification;
-                var missing =
+                    select sp.Specification;
+                IEnumerable<string> setWithRequiredValue = (
+                        from s in requiredWithValue
+                        let o = (OptionSpecification)s
+                        where o.SetName.Length > 0
+                        select o.SetName)
+                    .Distinct();
+                IEnumerable<Specification> requiredWithoutValue = from sp in specProps
+                    where sp.Specification.IsOption()
+                    where sp.Specification.Required
+                    where sp.Value.IsNothing()
+                    let o = (OptionSpecification)sp.Specification
+                    where o.SetName.Length > 0
+                    where o.Group.Length == 0
+                    where setWithRequiredValue.ContainsIfNotEmpty(o.SetName)
+                    select sp.Specification;
+                IEnumerable<Specification> missing =
                     requiredWithoutValue
                         .Except(requiredWithValue)
                         .Concat(
@@ -147,13 +149,15 @@ namespace CommandLine.Core
                             let o = (OptionSpecification)sp.Specification
                             where o.SetName.Length == 0
                             where o.Group.Length == 0
-                            select sp.Specification)
+                            select sp.Specification
+                        )
                         .Concat(
                             from sp in specProps
                             where sp.Specification.IsValue()
                             where sp.Specification.Required
                             where sp.Value.IsNothing()
-                            select sp.Specification);
+                            select sp.Specification
+                        );
                 return
                     from sp in missing
                     select new MissingRequiredOptionError(sp.FromSpecification());
@@ -163,58 +167,72 @@ namespace CommandLine.Core
         private static Func<IEnumerable<SpecificationProperty>, IEnumerable<Error>> EnforceRange()
         {
             return specProps =>
+            {
+                IEnumerable<SpecificationProperty> options = specProps
+                    .Where(sp => sp.Specification.TargetType == TargetType.Sequence)
+                    .Where(sp => sp.Value.IsJust())
+                    .Where(
+                        sp =>
+                            sp.Specification.Min.IsJust() && ((Array)sp.Value.FromJustOrFail()).Length < sp.Specification.Min.FromJustOrFail() ||
+                            sp.Specification.Max.IsJust() && ((Array)sp.Value.FromJustOrFail()).Length > sp.Specification.Max.FromJustOrFail()
+                    );
+                if (options.Any())
                 {
-                    var options = specProps
-                        .Where(sp => sp.Specification.TargetType == TargetType.Sequence)
-                        .Where(sp => sp.Value.IsJust())
-                        .Where(sp =>
-                            (sp.Specification.Min.IsJust() && ((Array)sp.Value.FromJustOrFail()).Length < sp.Specification.Min.FromJustOrFail())
-                            || (sp.Specification.Max.IsJust() && ((Array)sp.Value.FromJustOrFail()).Length > sp.Specification.Max.FromJustOrFail())
-                        );
-                    if (options.Any())
-                    {
-                        return
-                            from s in options
-                            select new SequenceOutOfRangeError(s.Specification.FromSpecification());
-                    }
-                    return Enumerable.Empty<Error>();
-                };
+                    return
+                        from s in options
+                        select new SequenceOutOfRangeError(s.Specification.FromSpecification());
+                }
+                return Enumerable.Empty<Error>();
+            };
         }
 
         private static Func<IEnumerable<SpecificationProperty>, IEnumerable<Error>> EnforceSingle(IEnumerable<Token> tokens, bool allowMultiInstance)
         {
             return specProps =>
+            {
+                if (allowMultiInstance)
                 {
-                    if (allowMultiInstance)
-                    {
-                        return Enumerable.Empty<Error>();
-                    }
+                    return Enumerable.Empty<Error>();
+                }
 
-                    var specs = from sp in specProps
-                                where sp.Specification.IsOption()
-                                where sp.Value.IsJust()
-                                select (OptionSpecification)sp.Specification;
-                    var shortOptions = from t in tokens
-                                       where t.IsName()
-                                       join o in specs on t.Text equals o.ShortName into to
-                                       from o in to.DefaultIfEmpty()
-                                       where o != null
-                                       select new { o.ShortName, o.LongName };
-                    var longOptions = from t in tokens
-                                      where t.IsName()
-                                      join o in specs on t.Text equals o.LongName into to
-                                      from o in to.DefaultIfEmpty()
-                                      where o != null
-                                      select new { o.ShortName, o.LongName };
-                    var groups = from x in shortOptions.Concat(longOptions)
-                                 group x by x into g
-                                 let count = g.Count()
-                                 select new { Value = g.Key, Count = count };
-                    var errors = from y in groups
-                                 where y.Count > 1
-                                 select new RepeatedOptionError(new NameInfo(y.Value.ShortName, y.Value.LongName));
-                    return errors;
-                };
+                IEnumerable<OptionSpecification> specs = from sp in specProps
+                    where sp.Specification.IsOption()
+                    where sp.Value.IsJust()
+                    select (OptionSpecification)sp.Specification;
+                var shortOptions = from t in tokens
+                    where t.IsName()
+                    join o in specs on t.Text equals o.ShortName into to
+                    from o in to.DefaultIfEmpty()
+                    where o != null
+                    select new
+                    {
+                        o.ShortName,
+                        o.LongName,
+                    };
+                var longOptions = from t in tokens
+                    where t.IsName()
+                    join o in specs on t.Text equals o.LongName into to
+                    from o in to.DefaultIfEmpty()
+                    where o != null
+                    select new
+                    {
+                        o.ShortName,
+                        o.LongName,
+                    };
+                var groups = from x in shortOptions.Concat(longOptions)
+                    group x by x
+                    into g
+                    let count = g.Count()
+                    select new
+                    {
+                        Value = g.Key,
+                        Count = count,
+                    };
+                IEnumerable<RepeatedOptionError> errors = from y in groups
+                    where y.Count > 1
+                    select new RepeatedOptionError(new NameInfo(y.Value.ShortName, y.Value.LongName));
+                return errors;
+            };
         }
 
         private static bool ContainsIfNotEmpty<T>(this IEnumerable<T> sequence, T value)
@@ -226,4 +244,5 @@ namespace CommandLine.Core
             return true;
         }
     }
+
 }

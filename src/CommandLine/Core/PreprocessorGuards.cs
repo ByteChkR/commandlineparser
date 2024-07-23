@@ -3,19 +3,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 namespace CommandLine.Core
 {
-    static class PreprocessorGuards
+
+    internal static class PreprocessorGuards
     {
         public static IEnumerable<Func<IEnumerable<string>, IEnumerable<Error>>>
             Lookup(StringComparer nameComparer, bool autoHelp, bool autoVersion)
         {
-            var list = new List<Func<IEnumerable<string>, IEnumerable<Error>>>();
+            List<Func<IEnumerable<string>, IEnumerable<Error>>> list = new List<Func<IEnumerable<string>, IEnumerable<Error>>>();
             if (autoHelp)
+            {
                 list.Add(HelpCommand(nameComparer));
+            }
             if (autoVersion)
+            {
                 list.Add(VersionCommand(nameComparer));
+            }
             return list;
         }
 
@@ -24,7 +28,10 @@ namespace CommandLine.Core
             return
                 arguments =>
                     nameComparer.Equals("--help", arguments.First())
-                        ? new Error[] { new HelpRequestedError() }
+                        ? new Error[]
+                        {
+                            new HelpRequestedError(),
+                        }
                         : Enumerable.Empty<Error>();
         }
 
@@ -33,8 +40,12 @@ namespace CommandLine.Core
             return
                 arguments =>
                     nameComparer.Equals("--version", arguments.First())
-                        ? new Error[] { new VersionRequestedError() }
+                        ? new Error[]
+                        {
+                            new VersionRequestedError(),
+                        }
                         : Enumerable.Empty<Error>();
         }
     }
+
 }

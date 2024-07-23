@@ -4,28 +4,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using CommandLine.Core;
-using CSharpx;
 
+using CommandLine.Core;
+
+using CSharpx;
 namespace CommandLine.Infrastructure
 {
-    static class ReflectionHelper
+
+    internal static class ReflectionHelper
     {
         /// <summary>
-        /// Per thread assembly attribute overrides for testing.
+        ///     Per thread assembly attribute overrides for testing.
         /// </summary>
         [ThreadStatic] private static IDictionary<Type, Attribute> _overrides;
 
         /// <summary>
-        /// Assembly attribute overrides for testing.
+        ///     Assembly attribute overrides for testing.
         /// </summary>
         /// <remarks>
-        /// The implementation will fail if two or more attributes of the same type
-        /// are included in <paramref name="overrides"/>.
+        ///     The implementation will fail if two or more attributes of the same type
+        ///     are included in <paramref name="overrides" />.
         /// </remarks>
         /// <param name="overrides">
-        /// Attributes that replace the existing assembly attributes or null,
-        /// to clear any testing attributes.
+        ///     Attributes that replace the existing assembly attributes or null,
+        ///     to clear any testing attributes.
         /// </param>
         public static void SetAttributeOverride(IEnumerable<Attribute> overrides)
         {
@@ -46,17 +48,15 @@ namespace CommandLine.Infrastructure
             if (_overrides != null)
             {
                 return
-                    _overrides.ContainsKey(typeof(TAttribute)) ?
-                        Maybe.Just((TAttribute)_overrides[typeof(TAttribute)]) :
-                        Maybe.Nothing<TAttribute>();
+                    _overrides.ContainsKey(typeof(TAttribute)) ? Maybe.Just((TAttribute)_overrides[typeof(TAttribute)]) : Maybe.Nothing<TAttribute>();
             }
 
-            var assembly = GetExecutingOrEntryAssembly();
+            Assembly assembly = GetExecutingOrEntryAssembly();
 
 #if NET40
-            var attributes = assembly.GetCustomAttributes(typeof(TAttribute), false);
+            object[] attributes = assembly.GetCustomAttributes(typeof(TAttribute), false);
 #else
-            var attributes = assembly.GetCustomAttributes<TAttribute>().ToArray();
+            TAttribute[] attributes = assembly.GetCustomAttributes<TAttribute>().ToArray();
 #endif
 
             return attributes.Length > 0
@@ -66,38 +66,40 @@ namespace CommandLine.Infrastructure
 
         public static string GetAssemblyName()
         {
-            var assembly = GetExecutingOrEntryAssembly();
+            Assembly assembly = GetExecutingOrEntryAssembly();
             return assembly.GetName().Name;
         }
 
         public static string GetAssemblyVersion()
         {
-            var assembly = GetExecutingOrEntryAssembly();
+            Assembly assembly = GetExecutingOrEntryAssembly();
             return assembly.GetName().Version.ToStringInvariant();
         }
 
         public static bool IsFSharpOptionType(Type type)
         {
             return type.FullName.StartsWith(
-                "Microsoft.FSharp.Core.FSharpOption`1", StringComparison.Ordinal);
+                "Microsoft.FSharp.Core.FSharpOption`1",
+                StringComparison.Ordinal
+            );
         }
 
         public static T CreateDefaultImmutableInstance<T>(Type[] constructorTypes)
         {
-            var t = typeof(T);
+            Type t = typeof(T);
             return (T)CreateDefaultImmutableInstance(t, constructorTypes);
         }
 
         public static object CreateDefaultImmutableInstance(Type type, Type[] constructorTypes)
         {
-            var ctor = type.GetTypeInfo().GetConstructor(constructorTypes);
+            ConstructorInfo ctor = type.GetTypeInfo().GetConstructor(constructorTypes);
             if (ctor == null)
             {
                 throw new InvalidOperationException($"Type {type.FullName} appears to be immutable, but no constructor found to accept values.");
             }
 
-            var values = (from prms in ctor.GetParameters()
-                          select prms.ParameterType.CreateDefaultForImmutable()).ToArray();
+            object[] values = (from prms in ctor.GetParameters()
+                select prms.ParameterType.CreateDefaultForImmutable()).ToArray();
             return ctor.Invoke(values);
         }
 
@@ -108,14 +110,19 @@ namespace CommandLine.Infrastructure
             return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
         }
 
-       public static IEnumerable<string> GetNamesOfEnum(Type t)
+        public static IEnumerable<string> GetNamesOfEnum(Type t)
         {
             if (t.IsEnum)
+            {
                 return Enum.GetNames(t);
+            }
             Type u = Nullable.GetUnderlyingType(t);
             if (u != null && u.IsEnum)
+            {
                 return Enum.GetNames(u);
+            }
             return Enumerable.Empty<string>();
         }
     }
+
 }

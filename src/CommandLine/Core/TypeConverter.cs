@@ -4,36 +4,36 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using CommandLine.Infrastructure;
-using CSharpx;
-using RailwaySharp.ErrorHandling;
 using System.Reflection;
 
+using CommandLine.Infrastructure;
+
+using CSharpx;
+
+using RailwaySharp.ErrorHandling;
 namespace CommandLine.Core
 {
-    static class TypeConverter
+
+    internal static class TypeConverter
     {
         public static Maybe<object> ChangeType(IEnumerable<string> values, Type conversionType, bool scalar, bool isFlag, CultureInfo conversionCulture, bool ignoreValueCase)
         {
-            return isFlag
-                ? ChangeTypeFlagCounter(values, conversionType, conversionCulture, ignoreValueCase)
-                : scalar
-                    ? ChangeTypeScalar(values.Last(), conversionType, conversionCulture, ignoreValueCase)
-                    : ChangeTypeSequence(values, conversionType, conversionCulture, ignoreValueCase);
+            return isFlag ? ChangeTypeFlagCounter(values, conversionType, conversionCulture, ignoreValueCase) :
+                scalar ? ChangeTypeScalar(values.Last(), conversionType, conversionCulture, ignoreValueCase) : ChangeTypeSequence(values, conversionType, conversionCulture, ignoreValueCase);
         }
 
         private static Maybe<object> ChangeTypeSequence(IEnumerable<string> values, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase)
         {
-            var type =
+            Type type =
                 conversionType.GetTypeInfo()
-                              .GetGenericArguments()
-                              .SingleOrDefault()
-                              .ToMaybe()
-                              .FromJustOrFail(
-                                  new InvalidOperationException("Non scalar properties should be sequence of type IEnumerable<T>.")
+                    .GetGenericArguments()
+                    .SingleOrDefault()
+                    .ToMaybe()
+                    .FromJustOrFail(
+                        new InvalidOperationException("Non scalar properties should be sequence of type IEnumerable<T>.")
                     );
 
-            var converted = values.Select(value => ChangeTypeScalar(value, type, conversionCulture, ignoreValueCase));
+            IEnumerable<Maybe<object>> converted = values.Select(value => ChangeTypeScalar(value, type, conversionCulture, ignoreValueCase));
 
             return converted.Any(a => a.MatchNothing())
                 ? Maybe.Nothing<object>()
@@ -42,15 +42,24 @@ namespace CommandLine.Core
 
         private static Maybe<object> ChangeTypeScalar(string value, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase)
         {
-            var result = ChangeTypeScalarImpl(value, conversionType, conversionCulture, ignoreValueCase);
-            result.Match((_,__) => { }, e => e.First().RethrowWhenAbsentIn(
-                new[] { typeof(InvalidCastException), typeof(FormatException), typeof(OverflowException) }));
+            Result<object, Exception> result = ChangeTypeScalarImpl(value, conversionType, conversionCulture, ignoreValueCase);
+            result.Match(
+                (_, __) => { },
+                e => e.First().RethrowWhenAbsentIn(
+                    new[]
+                    {
+                        typeof(InvalidCastException),
+                        typeof(FormatException),
+                        typeof(OverflowException),
+                    }
+                )
+            );
             return result.ToMaybe();
         }
 
         private static Maybe<object> ChangeTypeFlagCounter(IEnumerable<string> values, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase)
         {
-            var converted = values.Select(value => ChangeTypeScalar(value, typeof(bool), conversionCulture, ignoreValueCase));
+            IEnumerable<Maybe<object>> converted = values.Select(value => ChangeTypeScalar(value, typeof(bool), conversionCulture, ignoreValueCase));
             return converted.Any(maybe => maybe.MatchNothing())
                 ? Maybe.Nothing<object>()
                 : Maybe.Just((object)converted.Count(value => value.IsJust()));
@@ -75,7 +84,7 @@ namespace CommandLine.Core
             {
                 Func<object> safeChangeType = () =>
                 {
-                    var isFsOption = ReflectionHelper.IsFSharpOptionType(conversionType);
+                    bool isFsOption = ReflectionHelper.IsFSharpOptionType(conversionType);
 
                     Func<Type> getUnderlyingType =
                         () =>
@@ -83,9 +92,9 @@ namespace CommandLine.Core
                             isFsOption
                                 ? FSharpOptionHelper.GetUnderlyingType(conversionType) :
 #endif
-                                Nullable.GetUnderlyingType(conversionType);
+                            Nullable.GetUnderlyingType(conversionType);
 
-                    var type = getUnderlyingType() ?? conversionType;
+                    Type type = getUnderlyingType() ?? conversionType;
 
                     Func<object> withValue =
                         () =>
@@ -93,27 +102,36 @@ namespace CommandLine.Core
                             isFsOption
                                 ? FSharpOptionHelper.Some(type, ConvertString(value, type, conversionCulture)) :
 #endif
-                                ConvertString(value, type, conversionCulture);
+                            ConvertString(value, type, conversionCulture);
 #if !SKIP_FSHARP
                     Func<object> empty = () => isFsOption ? FSharpOptionHelper.None(type) : null;
 #else
                     Func<object> empty = () => null;
 #endif
 
-                    return (value == null) ? empty() : withValue();
+                    return value == null ? empty() : withValue();
                 };
 
-                return value.IsBooleanString() && conversionType == typeof(bool)
-                    ? value.ToBoolean() : conversionType.GetTypeInfo().IsEnum
-                        ? value.ToEnum(conversionType, ignoreValueCase) : safeChangeType();
+                return value.IsBooleanString() && conversionType == typeof(bool) ? value.ToBoolean() :
+                    conversionType.GetTypeInfo().IsEnum ? value.ToEnum(conversionType, ignoreValueCase) : safeChangeType();
             };
 
             Func<object> makeType = () =>
             {
                 try
                 {
-                    var ctor = conversionType.GetTypeInfo().GetConstructor(new[] { typeof(string) });
-                    return ctor.Invoke(new object[] { value });
+                    ConstructorInfo ctor = conversionType.GetTypeInfo().GetConstructor(
+                        new[]
+                        {
+                            typeof(string),
+                        }
+                    );
+                    return ctor.Invoke(
+                        new object[]
+                        {
+                            value,
+                        }
+                    );
                 }
                 catch (Exception)
                 {
@@ -121,11 +139,15 @@ namespace CommandLine.Core
                 }
             };
 
-            if (conversionType.IsCustomStruct()) return Result.Try(makeType);
+            if (conversionType.IsCustomStruct())
+            {
+                return Result.Try(makeType);
+            }
             return Result.Try(
                 conversionType.IsPrimitiveEx() || ReflectionHelper.IsFSharpOptionType(conversionType)
                     ? changeType
-                    : makeType);
+                    : makeType
+            );
         }
 
         private static object ToEnum(this string value, Type conversionType, bool ignoreValueCase)
@@ -149,10 +171,13 @@ namespace CommandLine.Core
         private static bool IsDefinedEx(object enumValue)
         {
             char firstChar = enumValue.ToString()[0];
-            if (Char.IsDigit(firstChar) || firstChar == '-')
+            if (char.IsDigit(firstChar) || firstChar == '-')
+            {
                 return false;
+            }
 
             return true;
         }
     }
+
 }

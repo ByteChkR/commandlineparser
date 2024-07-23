@@ -15,7 +15,7 @@
 		<Title>Command Line Parser Library</Title>
 		<Version Condition="'$(VersionSuffix)' != ''">$(VersionSuffix)</Version>
 		<Version Condition="'$(VersionSuffix)' == ''">0.0.0</Version>
-		<Description Condition="'$(BuildTarget)' != 'fsharp'">Terse syntax C# command line parser for .NET.  For FSharp support see CommandLineParser.FSharp.  The Command Line Parser Library offers to CLR applications a clean and concise API for manipulating command line arguments and related tasks.</Description>
+		<Description Condition="'$(BuildTarget)' != 'fsharp'">Terse syntax C# command line parser for .NET. For FSharp support see CommandLineParser.FSharp. The Command Line Parser Library offers to CLR applications a clean and concise API for manipulating command line arguments and related tasks.</Description>
 		<Description Condition="'$(BuildTarget)' == 'fsharp'">Terse syntax C# command line parser for .NET with F# support. The Command Line Parser Library offers to CLR applications a clean and concise API for manipulating command line arguments and related tasks.</Description>
 		<Copyright>Copyright (c) 2005 - 2020 Giacomo Stelluti Scala &amp; Contributors</Copyright>
 		<PackageLicenseFile>License.md</PackageLicenseFile>
@@ -29,7 +29,7 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(BuildTarget)' != 'fsharp'">
-		<Compile Remove="Infrastructure\FSharpOptionHelper.cs" />
+		<Compile Remove="Infrastructure\FSharpOptionHelper.cs"/>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -40,21 +40,21 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' != 'net40' and '$(BuildTarget)' == 'fsharp'">
-		<PackageReference Include="FSharp.Core" Version="4.5.1" Condition="'$(BuildTarget)' == 'fsharp'" />
+		<PackageReference Include="FSharp.Core" Version="4.5.1" Condition="'$(BuildTarget)' == 'fsharp'"/>
 		<PackageReference Update="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
-		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0"/>
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net40' and '$(BuildTarget)' == 'fsharp'">
-		<PackageReference Include="FSharp.Core" Version="4.0.0.1" Condition="'$(BuildTarget)' == 'fsharp'" />
+		<PackageReference Include="FSharp.Core" Version="4.0.0.1" Condition="'$(BuildTarget)' == 'fsharp'"/>
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="..\..\License.md" Pack="true" PackagePath="$(PackageLicenseFile)" />
-		<None Include="..\..\art\CommandLine20.png" Pack="true" PackagePath="$(PackageIcon)" />
+		<None Include="..\..\License.md" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+		<None Include="..\..\art\CommandLine20.png" Pack="true" PackagePath="$(PackageIcon)"/>
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Infrastructure\CSharpx\" />
+		<Folder Include="Infrastructure\CSharpx\"/>
 	</ItemGroup>
 </Project>

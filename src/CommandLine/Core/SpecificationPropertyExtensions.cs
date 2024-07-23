@@ -3,23 +3,29 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CSharpx;
-using System.Reflection;
 
+using CSharpx;
 namespace CommandLine.Core
 {
-    static class SpecificationPropertyExtensions
+
+    internal static class SpecificationPropertyExtensions
     {
         public static SpecificationProperty WithSpecification(this SpecificationProperty specProp, Specification newSpecification)
         {
-            if (newSpecification == null) throw new ArgumentNullException(nameof(newSpecification));
+            if (newSpecification == null)
+            {
+                throw new ArgumentNullException(nameof(newSpecification));
+            }
 
             return SpecificationProperty.Create(newSpecification, specProp.Property, specProp.Value);
         }
 
         public static SpecificationProperty WithValue(this SpecificationProperty specProp, Maybe<object> newValue)
         {
-            if (newValue == null) throw new ArgumentNullException(nameof(newValue));
+            if (newValue == null)
+            {
+                throw new ArgumentNullException(nameof(newValue));
+            }
 
             return SpecificationProperty.Create(specProp.Specification, specProp.Property, newValue);
         }
@@ -30,10 +36,11 @@ namespace CommandLine.Core
             {
                 case TargetType.Sequence:
                     return specProp.Property.PropertyType.GetTypeInfo().GetGenericArguments()
-                             .SingleOrDefault()
-                             .ToMaybe()
-                             .FromJustOrFail(
-                                 new InvalidOperationException("Sequence properties should be of type IEnumerable<T>."));
+                        .SingleOrDefault()
+                        .ToMaybe()
+                        .FromJustOrFail(
+                            new InvalidOperationException("Sequence properties should be of type IEnumerable<T>.")
+                        );
                 default:
                     return specProp.Property.PropertyType;
             }
@@ -42,9 +49,10 @@ namespace CommandLine.Core
         public static IEnumerable<Error> Validate(
             this IEnumerable<SpecificationProperty> specProps,
             IEnumerable<Func<IEnumerable<SpecificationProperty>,
-            IEnumerable<Error>>> rules)
+                IEnumerable<Error>>> rules)
         {
             return rules.SelectMany(rule => rule(specProps));
         }
     }
+
 }

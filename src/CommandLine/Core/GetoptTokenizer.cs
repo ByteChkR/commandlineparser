@@ -3,20 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CommandLine.Infrastructure;
-using CSharpx;
-using RailwaySharp.ErrorHandling;
-using System.Text.RegularExpressions;
 
+using CSharpx;
+
+using RailwaySharp.ErrorHandling;
 namespace CommandLine.Core
 {
-    static class GetoptTokenizer
+
+    internal static class GetoptTokenizer
     {
         public static Result<IEnumerable<Token>, Error> Tokenize(
             IEnumerable<string> arguments,
             Func<string, NameLookupResult> nameLookup)
         {
-            return GetoptTokenizer.Tokenize(arguments, nameLookup, ignoreUnknownArguments:false, allowDashDash:true, posixlyCorrect:false);
+            return Tokenize(arguments, nameLookup, false, true, false);
         }
 
         public static Result<IEnumerable<Token>, Error> Tokenize(
@@ -26,22 +26,23 @@ namespace CommandLine.Core
             bool allowDashDash,
             bool posixlyCorrect)
         {
-            var errors = new List<Error>();
+            List<Error> errors = new List<Error>();
             Action<string> onBadFormatToken = arg => errors.Add(new BadFormatTokenError(arg));
             Action<string> unknownOptionError = name => errors.Add(new UnknownOptionError(name));
-            Action<string> doNothing = name => {};
+            Action<string> doNothing = name => { };
             Action<string> onUnknownOption = ignoreUnknownArguments ? doNothing : unknownOptionError;
 
             int consumeNext = 0;
-            Action<int> onConsumeNext = (n => consumeNext = consumeNext + n);
+            Action<int> onConsumeNext = n => consumeNext = consumeNext + n;
             bool forceValues = false;
 
-            var tokens = new List<Token>();
+            List<Token> tokens = new List<Token>();
 
-            var enumerator = arguments.GetEnumerator();
+            IEnumerator<string> enumerator = arguments.GetEnumerator();
             while (enumerator.MoveNext())
             {
-                switch (enumerator.Current) {
+                switch (enumerator.Current)
+                {
                     case null:
                         break;
 
@@ -60,13 +61,19 @@ namespace CommandLine.Core
 
                     case "--":
                         tokens.Add(Token.Value("--"));
-                        if (posixlyCorrect) forceValues = true;
+                        if (posixlyCorrect)
+                        {
+                            forceValues = true;
+                        }
                         break;
 
                     case "-":
                         // A single hyphen is always a value (it usually means "read from stdin" or "write to stdout")
                         tokens.Add(Token.Value("-"));
-                        if (posixlyCorrect) forceValues = true;
+                        if (posixlyCorrect)
+                        {
+                            forceValues = true;
+                        }
                         break;
 
                     case string arg when arg.StartsWith("--"):
@@ -80,60 +87,73 @@ namespace CommandLine.Core
                     case string arg:
                         // If we get this far, it's a plain value
                         tokens.Add(Token.Value(arg));
-                        if (posixlyCorrect) forceValues = true;
+                        if (posixlyCorrect)
+                        {
+                            forceValues = true;
+                        }
                         break;
                 }
             }
 
-            return Result.Succeed<IEnumerable<Token>, Error>(tokens.AsEnumerable(), errors.AsEnumerable());
+            return Result.Succeed(tokens.AsEnumerable(), errors.AsEnumerable());
         }
 
         public static Result<IEnumerable<Token>, Error> ExplodeOptionList(
             Result<IEnumerable<Token>, Error> tokenizerResult,
             Func<string, Maybe<char>> optionSequenceWithSeparatorLookup)
         {
-            var tokens = tokenizerResult.SucceededWith().Memoize();
+            IEnumerable<Token> tokens = tokenizerResult.SucceededWith().Memoize();
 
-            var exploded = new List<Token>(tokens is ICollection<Token> coll ? coll.Count : tokens.Count());
-            var nothing = Maybe.Nothing<char>();  // Re-use same Nothing instance for efficiency
-            var separator = nothing;
-            foreach (var token in tokens) {
-                if (token.IsName()) {
+            List<Token> exploded = new List<Token>(tokens is ICollection<Token> coll ? coll.Count : tokens.Count());
+            Maybe<char> nothing = Maybe.Nothing<char>(); // Re-use same Nothing instance for efficiency
+            Maybe<char> separator = nothing;
+            foreach (Token token in tokens)
+            {
+                if (token.IsName())
+                {
                     separator = optionSequenceWithSeparatorLookup(token.Text);
                     exploded.Add(token);
-                } else {
+                }
+                else
+                {
                     // Forced values are never considered option values, so they should not be split
-                    if (separator.MatchJust(out char sep) && sep != '\0' && !token.IsValueForced()) {
-                        if (token.Text.Contains(sep)) {
+                    if (separator.MatchJust(out char sep) && sep != '\0' && !token.IsValueForced())
+                    {
+                        if (token.Text.Contains(sep))
+                        {
                             exploded.AddRange(token.Text.Split(sep).Select(Token.ValueFromSeparator));
-                        } else {
+                        }
+                        else
+                        {
                             exploded.Add(token);
                         }
-                    } else {
+                    }
+                    else
+                    {
                         exploded.Add(token);
                     }
-                    separator = nothing;  // Only first value after a separator can possibly be split
+                    separator = nothing; // Only first value after a separator can possibly be split
                 }
             }
             return Result.Succeed(exploded as IEnumerable<Token>, tokenizerResult.SuccessMessages());
         }
 
         public static Func<
-                    IEnumerable<string>,
-                    IEnumerable<OptionSpecification>,
-                    Result<IEnumerable<Token>, Error>>
+                IEnumerable<string>,
+                IEnumerable<OptionSpecification>,
+                Result<IEnumerable<Token>, Error>>
             ConfigureTokenizer(
-                    StringComparer nameComparer,
-                    bool ignoreUnknownArguments,
-                    bool enableDashDash,
-                    bool posixlyCorrect)
+                StringComparer nameComparer,
+                bool ignoreUnknownArguments,
+                bool enableDashDash,
+                bool posixlyCorrect)
         {
             return (arguments, optionSpecs) =>
-                {
-                    var tokens = GetoptTokenizer.Tokenize(arguments, name => NameLookup.Contains(name, optionSpecs, nameComparer), ignoreUnknownArguments, enableDashDash, posixlyCorrect);
-                    var explodedTokens = GetoptTokenizer.ExplodeOptionList(tokens, name => NameLookup.HavingSeparator(name, optionSpecs, nameComparer));
-                    return explodedTokens;
-                };
+            {
+                Result<IEnumerable<Token>, Error> tokens = Tokenize(arguments, name => NameLookup.Contains(name, optionSpecs, nameComparer), ignoreUnknownArguments, enableDashDash, posixlyCorrect);
+                Result<IEnumerable<Token>, Error> explodedTokens = ExplodeOptionList(tokens, name => NameLookup.HavingSeparator(name, optionSpecs, nameComparer));
+                return explodedTokens;
+            };
         }
 
         private static IEnumerable<Token> TokenizeShortName(
@@ -142,12 +162,11 @@ namespace CommandLine.Core
             Action<string> onUnknownOption,
             Action<int> onConsumeNext)
         {
-
             // First option char that requires a value means we swallow the rest of the string as the value
             // But if there is no rest of the string, then instead we swallow the next argument
             string chars = arg.Substring(1);
             int len = chars.Length;
-            if (len > 0 && Char.IsDigit(chars[0]))
+            if (len > 0 && char.IsDigit(chars[0]))
             {
                 // Assume it's a negative number
                 yield return Token.Value(arg);
@@ -155,23 +174,20 @@ namespace CommandLine.Core
             }
             for (int i = 0; i < len; i++)
             {
-                var s = new String(chars[i], 1);
-                switch(nameLookup(s))
+                string s = new string(chars[i], 1);
+                switch (nameLookup(s))
                 {
                     case NameLookupResult.OtherOptionFound:
                         yield return Token.Name(s);
 
-                        if (i+1 < len)
+                        if (i + 1 < len)
                         {
                             // Rest of this is the value (e.g. "-sfoo" where "-s" is a string-consuming arg)
-                            yield return Token.Value(chars.Substring(i+1));
+                            yield return Token.Value(chars.Substring(i + 1));
                             yield break;
                         }
-                        else
-                        {
-                            // Value is in next param (e.g., "-s foo")
-                            onConsumeNext(1);
-                        }
+                        // Value is in next param (e.g., "-s foo")
+                        onConsumeNext(1);
                         break;
 
                     case NameLookupResult.NoOptionFound:
@@ -192,16 +208,22 @@ namespace CommandLine.Core
             Action<string> onUnknownOption,
             Action<int> onConsumeNext)
         {
-            string[] parts = arg.Substring(2).Split(new char[] { '=' }, 2);
+            string[] parts = arg.Substring(2).Split(
+                new[]
+                {
+                    '=',
+                },
+                2
+            );
             string name = parts[0];
-            string value = (parts.Length > 1) ? parts[1] : null;
+            string value = parts.Length > 1 ? parts[1] : null;
             // A parameter like "--stringvalue=" is acceptable, and makes stringvalue be the empty string
-            if (String.IsNullOrWhiteSpace(name) || name.Contains(" "))
+            if (string.IsNullOrWhiteSpace(name) || name.Contains(" "))
             {
                 onBadFormatToken(arg);
                 yield break;
             }
-            switch(nameLookup(name))
+            switch (nameLookup(name))
             {
                 case NameLookupResult.NoOptionFound:
                     onUnknownOption(name);
@@ -225,4 +247,5 @@ namespace CommandLine.Core
             }
         }
     }
+
 }

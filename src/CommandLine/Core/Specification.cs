@@ -4,119 +4,88 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using CommandLine.Infrastructure;
-using CSharpx;
 
+using CommandLine.Infrastructure;
+
+using CSharpx;
 namespace CommandLine.Core
 {
-    enum SpecificationType
+
+    internal enum SpecificationType
     {
         Option,
-        Value
+        Value,
     }
 
-    enum TargetType
+    internal enum TargetType
     {
         Switch,
         Scalar,
-        Sequence
+        Sequence,
     }
 
-    abstract class Specification
+    internal abstract class Specification
     {
-        private readonly SpecificationType tag;
-        private readonly bool required;
-        private readonly bool hidden;
-        private readonly Maybe<int> min;
-        private readonly Maybe<int> max;
-        private readonly Maybe<object> defaultValue;
-        private readonly string helpText;
-        private readonly string metaValue;
-        private readonly IEnumerable<string> enumValues;
+
+        protected Specification(SpecificationType tag,
+            bool required,
+            Maybe<int> min,
+            Maybe<int> max,
+            Maybe<object> defaultValue,
+            string helpText,
+            string metaValue,
+            IEnumerable<string> enumValues,
+            Type conversionType,
+            TargetType targetType,
+            bool hidden = false)
+        {
+            this.Tag = tag;
+            this.Required = required;
+            this.Min = min;
+            this.Max = max;
+            this.DefaultValue = defaultValue;
+            this.ConversionType = conversionType;
+            this.TargetType = targetType;
+            this.HelpText = helpText;
+            this.MetaValue = metaValue;
+            this.EnumValues = enumValues;
+            this.Hidden = hidden;
+        }
+
+        public SpecificationType Tag { get; }
+
+        public bool Required { get; }
+
+        public Maybe<int> Min { get; }
+
+        public Maybe<int> Max { get; }
+
+        public Maybe<object> DefaultValue { get; }
+
+        public string HelpText { get; }
+
+        public string MetaValue { get; }
+
+        public IEnumerable<string> EnumValues { get; }
+
         /// This information is denormalized to decouple Specification from PropertyInfo.
-        private readonly Type conversionType;
-        private readonly TargetType targetType;
+        public Type ConversionType { get; }
 
-        protected Specification(SpecificationType tag, bool required, Maybe<int> min, Maybe<int> max,
-            Maybe<object> defaultValue, string helpText, string metaValue, IEnumerable<string> enumValues,
-            Type conversionType, TargetType targetType, bool hidden = false)
-        {
-            this.tag = tag;
-            this.required = required;
-            this.min = min;
-            this.max = max;
-            this.defaultValue = defaultValue;
-            this.conversionType = conversionType;
-            this.targetType = targetType;
-            this.helpText = helpText;
-            this.metaValue = metaValue;
-            this.enumValues = enumValues;
-            this.hidden = hidden;
-        }
+        public TargetType TargetType { get; }
 
-        public SpecificationType Tag 
-        {
-            get { return tag; }
-        }
-
-        public bool Required
-        {
-            get { return required; }
-        }
-
-        public Maybe<int> Min
-        {
-            get { return min; }
-        }
-
-        public Maybe<int> Max
-        {
-            get { return max; }
-        }
-
-        public Maybe<object> DefaultValue
-        {
-            get { return defaultValue; }
-        }
-
-        public string HelpText
-        {
-            get { return helpText; }
-        }
-
-        public string MetaValue
-        {
-            get { return metaValue; }
-        }
-
-        public IEnumerable<string> EnumValues
-        {
-            get { return enumValues; }
-        }
-
-        public Type ConversionType
-        {
-            get { return conversionType; }
-        }
-
-        public TargetType TargetType
-        {
-            get { return targetType; }
-        }
-
-        public bool Hidden
-        {
-            get { return hidden; }
-        }
+        public bool Hidden { get; }
 
         public static Specification FromProperty(PropertyInfo property)
-        {       
-            var attrs = property.GetCustomAttributes(true);
-            var oa = attrs.OfType<OptionAttribute>();
+        {
+            object[] attrs = property.GetCustomAttributes(true);
+            IEnumerable<OptionAttribute> oa = attrs.OfType<OptionAttribute>();
             if (oa.Count() == 1)
             {
-                var spec = OptionSpecification.FromAttribute(oa.Single(), property.PropertyType,
-                    ReflectionHelper.GetNamesOfEnum(property.PropertyType)); 
+                OptionSpecification spec = OptionSpecification.FromAttribute(
+                    oa.Single(),
+                    property.PropertyType,
+                    ReflectionHelper.GetNamesOfEnum(property.PropertyType)
+                );
 
                 if (spec.ShortName.Length == 0 && spec.LongName.Length == 0)
                 {
@@ -125,16 +94,20 @@ namespace CommandLine.Core
                 return spec;
             }
 
-            var va = attrs.OfType<ValueAttribute>();
+            IEnumerable<ValueAttribute> va = attrs.OfType<ValueAttribute>();
             if (va.Count() == 1)
             {
-                return ValueSpecification.FromAttribute(va.Single(), property.PropertyType,
+                return ValueSpecification.FromAttribute(
+                    va.Single(),
+                    property.PropertyType,
                     property.PropertyType.GetTypeInfo().IsEnum
                         ? Enum.GetNames(property.PropertyType)
-                        : Enumerable.Empty<string>());
+                        : Enumerable.Empty<string>()
+                );
             }
 
             throw new InvalidOperationException();
         }
     }
+
 }

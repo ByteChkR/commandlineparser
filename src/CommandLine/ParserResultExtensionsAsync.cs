@@ -1,10 +1,7 @@
 ﻿// Copyright 2005-2015 Giacomo Stelluti Scala & Contributors. All rights reserved. See License.md in the project root for license information.
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace CommandLine
 {
+
     public static partial class ParserResultExtensions
     {
 #if !NET40
@@ -62,4 +59,5 @@ namespace CommandLine
         }
 #endif
     }
+
 }

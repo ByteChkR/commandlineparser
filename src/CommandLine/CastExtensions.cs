@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-
 namespace CommandLine
 {
+
     internal static class CastExtensions
     {
         private const string ImplicitCastMethodName = "op_Implicit";
@@ -16,7 +16,7 @@ namespace CommandLine
 
         public static bool CanCast<T>(this object obj)
         {
-            var objType = obj.GetType();
+            Type objType = obj.GetType();
             return objType.CanCast<T>();
         }
 
@@ -24,16 +24,19 @@ namespace CommandLine
         {
             try
             {
-                return (T) obj;
+                return (T)obj;
             }
             catch (InvalidCastException)
             {
                 if (obj.CanImplicitCast<T>())
+                {
                     return obj.ImplicitCast<T>();
+                }
                 if (obj.CanExplicitCast<T>())
+                {
                     return obj.ExplicitCast<T>();
-                else
-                    throw;
+                }
+                throw;
             }
         }
 
@@ -44,7 +47,7 @@ namespace CommandLine
 
         private static bool CanImplicitCast<T>(this object obj)
         {
-            var baseType = obj.GetType();
+            Type baseType = obj.GetType();
             return baseType.CanImplicitCast<T>();
         }
 
@@ -55,20 +58,22 @@ namespace CommandLine
 
         private static bool CanExplicitCast<T>(this object obj)
         {
-            var baseType = obj.GetType();
+            Type baseType = obj.GetType();
             return baseType.CanExplicitCast<T>();
         }
 
         private static bool CanCast<T>(this Type baseType, string castMethodName)
         {
-            var targetType = typeof(T);
+            Type targetType = typeof(T);
             return baseType.GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Where(mi => mi.Name == castMethodName && mi.ReturnType == targetType)
-                .Any(mi =>
-                {
-                    ParameterInfo pi = mi.GetParameters().FirstOrDefault();
-                    return pi != null && pi.ParameterType == baseType;
-                });
+                .Any(
+                    mi =>
+                    {
+                        ParameterInfo pi = mi.GetParameters().FirstOrDefault();
+                        return pi != null && pi.ParameterType == baseType;
+                    }
+                );
         }
 
         private static T ImplicitCast<T>(this object obj)
@@ -83,18 +88,28 @@ namespace CommandLine
 
         private static T Cast<T>(this object obj, string castMethodName)
         {
-            var objType = obj.GetType();
+            Type objType = obj.GetType();
             MethodInfo conversionMethod = objType.GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Where(mi => mi.Name == castMethodName && mi.ReturnType == typeof(T))
-                .SingleOrDefault(mi =>
-                {
-                    ParameterInfo pi = mi.GetParameters().FirstOrDefault();
-                    return pi != null && pi.ParameterType == objType;
-                });
+                .SingleOrDefault(
+                    mi =>
+                    {
+                        ParameterInfo pi = mi.GetParameters().FirstOrDefault();
+                        return pi != null && pi.ParameterType == objType;
+                    }
+                );
             if (conversionMethod != null)
-                return (T) conversionMethod.Invoke(null, new[] {obj});
-            else
-                throw new InvalidCastException($"No method to cast {objType.FullName} to {typeof(T).FullName}");
+            {
+                return (T)conversionMethod.Invoke(
+                    null,
+                    new[]
+                    {
+                        obj,
+                    }
+                );
+            }
+            throw new InvalidCastException($"No method to cast {objType.FullName} to {typeof(T).FullName}");
         }
     }
+
 }

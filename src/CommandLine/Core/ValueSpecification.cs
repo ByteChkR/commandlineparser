@@ -2,23 +2,35 @@
 
 using System;
 using System.Collections.Generic;
-using CSharpx;
 
+using CSharpx;
 namespace CommandLine.Core
 {
-    sealed class ValueSpecification : Specification
-    {
-        private readonly int index;
-        private readonly string metaName;
 
-        public ValueSpecification(int index, string metaName, bool required, Maybe<int> min, Maybe<int> max, Maybe<object> defaultValue,
-            string helpText, string metaValue, IEnumerable<string> enumValues,
-            Type conversionType, TargetType targetType, bool hidden = false)
+    internal sealed class ValueSpecification : Specification
+    {
+
+        public ValueSpecification(int index,
+            string metaName,
+            bool required,
+            Maybe<int> min,
+            Maybe<int> max,
+            Maybe<object> defaultValue,
+            string helpText,
+            string metaValue,
+            IEnumerable<string> enumValues,
+            Type conversionType,
+            TargetType targetType,
+            bool hidden = false)
             : base(SpecificationType.Value, required, min, max, defaultValue, helpText, metaValue, enumValues, conversionType, targetType, hidden)
         {
-            this.index = index;
-            this.metaName = metaName;
+            this.Index = index;
+            this.MetaName = metaName;
         }
+
+        public int Index { get; }
+
+        public string MetaName { get; }
 
         public static ValueSpecification FromAttribute(ValueAttribute attribute, Type conversionType, IEnumerable<string> enumValues)
         {
@@ -34,17 +46,9 @@ namespace CommandLine.Core
                 enumValues,
                 conversionType,
                 conversionType.ToTargetType(),
-                attribute.Hidden);
-        }
-
-        public int Index
-        {
-            get { return index; }
-        }
-
-        public string MetaName
-        {
-            get { return metaName;}
+                attribute.Hidden
+            );
         }
     }
+
 }

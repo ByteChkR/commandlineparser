@@ -3,10 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 namespace CommandLine.Core
 {
-    static class SpecificationExtensions
+
+    internal static class SpecificationExtensions
     {
         public static bool IsOption(this Specification specification)
         {
@@ -36,7 +36,8 @@ namespace CommandLine.Core
                 specification.TargetType,
                 specification.Group,
                 specification.FlagCounter,
-                specification.Hidden);
+                specification.Hidden
+            );
         }
 
         public static string UniqueName(this OptionSpecification specification)
@@ -46,7 +47,7 @@ namespace CommandLine.Core
 
         public static IEnumerable<Specification> ThrowingValidate(this IEnumerable<Specification> specifications, IEnumerable<Tuple<Func<Specification, bool>, string>> guardsLookup)
         {
-            foreach (var guard in guardsLookup)
+            foreach (Tuple<Func<Specification, bool>, string> guard in guardsLookup)
             {
                 if (specifications.Any(spec => guard.Item1(spec)))
                 {
@@ -88,4 +89,5 @@ namespace CommandLine.Core
             return false;
         }
     }
+
 }
