@@ -6,8 +6,7 @@ namespace CommandLine
 {
 
     /// <summary>
-    ///     Defines generic overloads for <see cref="CommandLine.Parser.ParseArguments(IEnumerable{string},Type[]Type.
-    /// 
+    ///     Defines generic overloads for <see cref="CommandLine.Parser.ParseArguments(IEnumerable{string},Type[])"/> method.
     /// </summary>
     public static class ParserExtensions
     {
