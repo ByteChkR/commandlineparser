@@ -8,9 +8,9 @@ using System.Text;
 using CommandLine.Infrastructure;
 
 using CSharpx;
+
 namespace CommandLine.Text
 {
-
     /// <summary>
     ///     Models the heading part of an help text.
     ///     You can assign it where you assign any <see cref="System.String" /> instance.
@@ -58,16 +58,16 @@ namespace CommandLine.Text
             get
             {
                 string title = ReflectionHelper.GetAttribute<AssemblyTitleAttribute>()
-                    .MapValueOrDefault(
-                        titleAttribute => titleAttribute.Title,
-                        ReflectionHelper.GetAssemblyName()
-                    );
+                                               .MapValueOrDefault(titleAttribute => titleAttribute.Title,
+                                                                  ReflectionHelper.GetAssemblyName()
+                                                                 );
 
                 string version = ReflectionHelper.GetAttribute<AssemblyInformationalVersionAttribute>()
-                    .MapValueOrDefault(
-                        versionAttribute => versionAttribute.InformationalVersion,
-                        ReflectionHelper.GetAssemblyVersion()
-                    );
+                                                 .MapValueOrDefault(versionAttribute =>
+                                                                        versionAttribute.InformationalVersion,
+                                                                    ReflectionHelper.GetAssemblyVersion()
+                                                                   );
+
                 return new HeadingInfo(title, version);
             }
         }
@@ -89,13 +89,13 @@ namespace CommandLine.Text
         public override string ToString()
         {
             bool isVersionNull = string.IsNullOrEmpty(version);
-            return new StringBuilder(
-                    programName.Length +
-                    (!isVersionNull ? version.Length + 1 : 0)
-                )
-                .Append(programName)
-                .AppendWhen(!isVersionNull, " ", version)
-                .ToString();
+
+            return new StringBuilder(programName.Length +
+                                     (!isVersionNull ? version.Length + 1 : 0)
+                                    )
+                   .Append(programName)
+                   .AppendWhen(!isVersionNull, " ", version)
+                   .ToString();
         }
 
         /// <summary>
@@ -112,18 +112,18 @@ namespace CommandLine.Text
             {
                 throw new ArgumentException("message");
             }
+
             if (writer == null)
             {
                 throw new ArgumentNullException("writer");
             }
 
-            writer.WriteLine(
-                new StringBuilder(programName.Length + message.Length + 2)
-                    .Append(programName)
-                    .Append(": ")
-                    .Append(message)
-                    .ToString()
-            );
+            writer.WriteLine(new StringBuilder(programName.Length + message.Length + 2)
+                             .Append(programName)
+                             .Append(": ")
+                             .Append(message)
+                             .ToString()
+                            );
         }
 
         /// <summary>
@@ -148,5 +148,4 @@ namespace CommandLine.Text
             WriteMessage(message, Console.Error);
         }
     }
-
 }

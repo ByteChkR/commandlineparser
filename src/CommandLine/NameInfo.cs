@@ -1,9 +1,9 @@
 ﻿// Copyright 2005-2015 Giacomo Stelluti Scala & Contributors. All rights reserved. See License.md in the project root for license information.
 
 using System;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Models name information, used in <see cref="CommandLine.Error" /> instances.
     /// </summary>
@@ -21,13 +21,14 @@ namespace CommandLine
             {
                 throw new ArgumentNullException("shortName");
             }
+
             if (longName == null)
             {
                 throw new ArgumentNullException("longName");
             }
 
-            this.LongName = longName;
-            this.ShortName = shortName;
+            LongName = longName;
+            ShortName = shortName;
         }
 
         /// <summary>
@@ -43,9 +44,10 @@ namespace CommandLine
         /// <summary>
         ///     Gets a formatted text with unified name information.
         /// </summary>
-        public string NameText =>
-            ShortName.Length > 0 && LongName.Length > 0 ? ShortName + ", " + LongName :
-            ShortName.Length > 0 ? ShortName : LongName;
+        public string NameText => ShortName.Length > 0 && LongName.Length > 0 ? ShortName + ", " + LongName :
+                                  ShortName.Length > 0 ? ShortName : LongName;
+
+#region IEquatable<NameInfo> Members
 
         /// <summary>
         ///     Returns a value that indicates whether the current instance and a specified <see cref="CommandLine.NameInfo" />
@@ -69,6 +71,8 @@ namespace CommandLine
             return ShortName.Equals(other.ShortName) && LongName.Equals(other.LongName);
         }
 
+#endregion
+
         /// <summary>
         ///     Determines whether the specified <see cref="System.Object" /> is equal to the current <see cref="System.Object" />.
         /// </summary>
@@ -82,6 +86,7 @@ namespace CommandLine
         public override bool Equals(object obj)
         {
             NameInfo other = obj as NameInfo;
+
             if (other != null)
             {
                 return Equals(other);
@@ -96,12 +101,7 @@ namespace CommandLine
         /// <remarks>A hash code for the current <see cref="System.Object" />.</remarks>
         public override int GetHashCode()
         {
-            return new
-            {
-                ShortName,
-                LongName,
-            }.GetHashCode();
+            return new { ShortName, LongName }.GetHashCode();
         }
     }
-
 }

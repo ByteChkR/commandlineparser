@@ -3,16 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace CommandLine
 {
-
     public sealed class TypeInfo
     {
-
         private TypeInfo(Type current, IEnumerable<Type> choices)
         {
-            this.Current = current;
-            this.Choices = choices;
+            Current = current;
+            Choices = choices;
         }
 
         public Type Current { get; }
@@ -39,6 +38,7 @@ namespace CommandLine
         ///     Value of <see cref="CommandLine.Parsed{T}" /> type.
         /// </summary>
         Parsed,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.NotParsed{T}" /> type.
         /// </summary>
@@ -55,11 +55,10 @@ namespace CommandLine
     /// <typeparam name="T">The type with attributes that define the syntax of parsing rules.</typeparam>
     public abstract class ParserResult<T>
     {
-
         internal ParserResult(IEnumerable<Error> errors, TypeInfo typeInfo)
         {
             Tag = ParserResultType.NotParsed;
-            this.TypeInfo = typeInfo ?? TypeInfo.Create(typeof(T));
+            TypeInfo = typeInfo ?? TypeInfo.Create(typeof(T));
             Errors = errors ?? new Error[0];
             Value = default;
         }
@@ -68,7 +67,7 @@ namespace CommandLine
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
             Tag = ParserResultType.Parsed;
-            this.TypeInfo = typeInfo ?? TypeInfo.Create(value.GetType());
+            TypeInfo = typeInfo ?? TypeInfo.Create(value.GetType());
             Errors = new Error[0];
         }
 
@@ -102,6 +101,8 @@ namespace CommandLine
         internal Parsed(T value)
             : this(value, TypeInfo.Create(value.GetType())) { }
 
+#region IEquatable<Parsed<T>> Members
+
         /// <summary>
         ///     Returns a value that indicates whether the current instance and a specified <see cref="CommandLine.Parsed{T}" />
         ///     have the same value.
@@ -123,6 +124,8 @@ namespace CommandLine
 
             return Tag.Equals(other.Tag) && Value.Equals(other.Value);
         }
+
+#endregion
 
 
         /// <summary>
@@ -151,11 +154,7 @@ namespace CommandLine
         /// <remarks>A hash code for the current <see cref="System.Object" />.</remarks>
         public override int GetHashCode()
         {
-            return new
-            {
-                Tag,
-                Value,
-            }.GetHashCode();
+            return new { Tag, Value }.GetHashCode();
         }
     }
 
@@ -165,9 +164,10 @@ namespace CommandLine
     /// <typeparam name="T">The type with attributes that define the syntax of parsing rules.</typeparam>
     public sealed class NotParsed<T> : ParserResult<T>, IEquatable<NotParsed<T>>
     {
-
         internal NotParsed(TypeInfo typeInfo, IEnumerable<Error> errors)
             : base(errors, typeInfo) { }
+
+#region IEquatable<NotParsed<T>> Members
 
         /// <summary>
         ///     Returns a value that indicates whether the current instance and a specified <see cref="CommandLine.NotParsed{T}" />
@@ -190,6 +190,8 @@ namespace CommandLine
 
             return Tag.Equals(other.Tag) && Errors.SequenceEqual(other.Errors);
         }
+
+#endregion
 
 
         /// <summary>
@@ -218,12 +220,7 @@ namespace CommandLine
         /// <remarks>A hash code for the current <see cref="System.Object" />.</remarks>
         public override int GetHashCode()
         {
-            return new
-            {
-                Tag,
-                Errors,
-            }.GetHashCode();
+            return new { Tag, Errors }.GetHashCode();
         }
     }
-
 }

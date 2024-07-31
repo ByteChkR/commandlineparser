@@ -14,26 +14,26 @@ using LinqEnumerable = System.Linq.Enumerable;
 
 namespace CSharpx
 {
-
 #if !CSX_ENUM_INTERNAL
     public
 #endif
     internal static class EnumerableExtensions
     {
-
         private static readonly Func<int, int, Exception> OnFolderSourceSizeErrorSelector = OnFolderSourceSizeError;
 
         private static IEnumerable<TSource> AssertCountImpl<TSource>(IEnumerable<TSource> source,
-            int count,
-            Func<int, int, Exception> errorSelector)
+                                                                     int count,
+                                                                     Func<int, int, Exception> errorSelector)
         {
             ICollection<TSource> collection = source as ICollection<TSource>; // Optimization for collections
+
             if (collection != null)
             {
                 if (collection.Count != count)
                 {
                     throw errorSelector(collection.Count.CompareTo(count), count);
                 }
+
                 return source;
             }
 
@@ -45,15 +45,19 @@ namespace CSharpx
             Func<int, int, Exception> errorSelector)
         {
             int iterations = 0;
+
             foreach (TSource element in source)
             {
                 iterations++;
+
                 if (iterations > count)
                 {
                     throw errorSelector(1, count);
                 }
+
                 yield return element;
             }
+
             if (iterations != count)
             {
                 throw errorSelector(-1, count);
@@ -64,24 +68,29 @@ namespace CSharpx
         ///     Returns the Cartesian product of two sequences by combining each element of the first set with each in the second
         ///     and applying the user=define projection to the pair.
         /// </summary>
-        public static IEnumerable<TResult> Cartesian<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
+        public static IEnumerable<TResult> Cartesian<TFirst, TSecond, TResult>(
+            this IEnumerable<TFirst> first,
+            IEnumerable<TSecond> second,
+            Func<TFirst, TSecond, TResult> resultSelector)
         {
             if (first == null)
             {
                 throw new ArgumentNullException(nameof(first));
             }
+
             if (second == null)
             {
                 throw new ArgumentNullException(nameof(second));
             }
+
             if (resultSelector == null)
             {
                 throw new ArgumentNullException(nameof(resultSelector));
             }
 
             return from element1 in first
-                from element2 in second // TODO buffer to avoid multiple enumerations
-                select resultSelector(element1, element2);
+                   from element2 in second // TODO buffer to avoid multiple enumerations
+                   select resultSelector(element1, element2);
         }
 
         /// <summary>
@@ -94,7 +103,8 @@ namespace CSharpx
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return LinqEnumerable.Repeat(value, 1).Concat(source);
+            return LinqEnumerable.Repeat(value, 1)
+                                 .Concat(source);
         }
 
         /// <summary>
@@ -133,10 +143,12 @@ namespace CSharpx
             {
                 throw new ArgumentNullException(nameof(sequence));
             }
+
             if (startIndex < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
             }
+
             if (count < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
@@ -149,6 +161,7 @@ namespace CSharpx
         {
             int index = -1;
             int endIndex = startIndex + count;
+
             using (IEnumerator<T> iter = sequence.GetEnumerator())
             {
                 // yield the first part of the sequence
@@ -156,8 +169,10 @@ namespace CSharpx
                 {
                     yield return iter.Current;
                 }
+
                 // skip the next part (up to count elements)
                 while (++index < endIndex && iter.MoveNext()) { }
+
                 // yield the remainder of the sequence
                 while (iter.MoveNext())
                 {
@@ -181,7 +196,9 @@ namespace CSharpx
         ///     where the key is the index of the value in the source sequence.
         ///     An additional parameter specifies the starting index.
         /// </summary>
-        public static IEnumerable<KeyValuePair<int, TSource>> Index<TSource>(this IEnumerable<TSource> source, int startIndex)
+        public static IEnumerable<KeyValuePair<int, TSource>> Index<TSource>(
+            this IEnumerable<TSource> source,
+            int startIndex)
         {
             return source.Select((element, index) => new KeyValuePair<int, TSource>(startIndex + index, element));
         }
@@ -223,47 +240,57 @@ namespace CSharpx
         }
 
         private static TResult FoldImpl<T, TResult>(IEnumerable<T> source,
-            int count,
-            Func<T, TResult> folder1,
-            Func<T, T, TResult> folder2,
-            Func<T, T, T, TResult> folder3,
-            Func<T, T, T, T, TResult> folder4)
+                                                    int count,
+                                                    Func<T, TResult> folder1,
+                                                    Func<T, T, TResult> folder2,
+                                                    Func<T, T, T, TResult> folder3,
+                                                    Func<T, T, T, T, TResult> folder4)
         {
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
-            if (count == 1 && folder1 == null || count == 2 && folder2 == null || count == 3 && folder3 == null || count == 4 && folder4 == null)
+
+            if ((count == 1 && folder1 == null) ||
+                (count == 2 && folder2 == null) ||
+                (count == 3 && folder3 == null) ||
+                (count == 4 && folder4 == null))
             {
                 // ReSharper disable NotResolvedInText
                 throw new ArgumentNullException("folder"); // ReSharper restore NotResolvedInText
             }
 
             T[] elements = new T[count];
-            foreach (KeyValuePair<int, T> e in AssertCountImpl(
-                         source.Index(),
-                         count,
-                         OnFolderSourceSizeErrorSelector
-                     ))
+
+            foreach (KeyValuePair<int, T> e in AssertCountImpl(source.Index(),
+                                                               count,
+                                                               OnFolderSourceSizeErrorSelector
+                                                              ))
             {
                 elements[e.Key] = e.Value;
             }
 
             switch (count)
             {
-                case 1: return folder1(elements[0]);
-                case 2: return folder2(elements[0], elements[1]);
-                case 3: return folder3(elements[0], elements[1], elements[2]);
-                case 4: return folder4(elements[0], elements[1], elements[2], elements[3]);
-                default: throw new NotSupportedException();
+                case 1:
+                    return folder1(elements[0]);
+                case 2:
+                    return folder2(elements[0], elements[1]);
+                case 3:
+                    return folder3(elements[0], elements[1], elements[2]);
+                case 4:
+                    return folder4(elements[0], elements[1], elements[2], elements[3]);
+                default:
+                    throw new NotSupportedException();
             }
         }
 
         private static Exception OnFolderSourceSizeError(int cmp, int count)
         {
             string message = cmp < 0
-                ? "Sequence contains too few elements when exactly {0} {1} expected"
-                : "Sequence contains too many elements when exactly {0} {1} expected";
+                                 ? "Sequence contains too few elements when exactly {0} {1} expected"
+                                 : "Sequence contains too many elements when exactly {0} {1} expected";
+
             return new Exception(string.Format(message, count.ToString("N0"), count == 1 ? "was" : "were"));
         }
 
@@ -276,6 +303,7 @@ namespace CSharpx
             {
                 throw new ArgumentNullException(nameof(source));
             }
+
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
@@ -293,12 +321,14 @@ namespace CSharpx
         ///     predecessor, with the exception of the first element which is
         ///     only returned as the predecessor of the second element.
         /// </summary>
-        public static IEnumerable<TResult> Pairwise<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TSource, TResult> resultSelector)
+        public static IEnumerable<TResult> Pairwise<TSource, TResult>(this IEnumerable<TSource> source,
+                                                                      Func<TSource, TSource, TResult> resultSelector)
         {
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
+
             if (resultSelector == null)
             {
                 throw new ArgumentNullException(nameof(resultSelector));
@@ -307,7 +337,9 @@ namespace CSharpx
             return PairwiseImpl(source, resultSelector);
         }
 
-        private static IEnumerable<TResult> PairwiseImpl<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TSource, TResult> resultSelector)
+        private static IEnumerable<TResult> PairwiseImpl<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            Func<TSource, TSource, TResult> resultSelector)
         {
             Debug.Assert(source != null);
             Debug.Assert(resultSelector != null);
@@ -320,6 +352,7 @@ namespace CSharpx
                 }
 
                 TSource previous = e.Current;
+
                 while (e.MoveNext())
                 {
                     yield return resultSelector(previous, e.Current);
@@ -351,7 +384,9 @@ namespace CSharpx
             return ToDelimitedStringImpl(source, delimiter, (sb, e) => sb.Append(e));
         }
 
-        private static string ToDelimitedStringImpl<T>(IEnumerable<T> source, string delimiter, Func<StringBuilder, T, StringBuilder> append)
+        private static string ToDelimitedStringImpl<T>(IEnumerable<T> source,
+                                                       string delimiter,
+                                                       Func<StringBuilder, T, StringBuilder> append)
         {
             Debug.Assert(source != null);
             Debug.Assert(append != null);
@@ -366,6 +401,7 @@ namespace CSharpx
                 {
                     sb.Append(delimiter);
                 }
+
                 append(sb, value);
             }
 
@@ -415,7 +451,10 @@ namespace CSharpx
         /// </summary>
         public static IEnumerable<T> Memoize<T>(this IEnumerable<T> source)
         {
-            return source.GetType().IsArray ? source : source.ToArray();
+            return source.GetType()
+                         .IsArray
+                       ? source
+                       : source.ToArray();
         }
 
         /// <summary>
@@ -423,10 +462,13 @@ namespace CSharpx
         /// </summary>
         public static IEnumerable<T> Materialize<T>(this IEnumerable<T> source)
         {
-            if (source is MaterializedEnumerable<T> || source.GetType().IsArray)
+            if (source is MaterializedEnumerable<T> ||
+                source.GetType()
+                      .IsArray)
             {
                 return source;
             }
+
             return new MaterializedEnumerable<T>(source);
         }
 
@@ -455,9 +497,11 @@ namespace CSharpx
 
             int count = source.Count();
             int last = count - 1;
+
             for (int i = 0; i < count; i++)
             {
                 yield return source.ElementAt(i);
+
                 if (i != last)
                 {
                     yield return element;
@@ -488,12 +532,15 @@ namespace CSharpx
             foreach (string element in source)
             {
                 string[] parts = element.Split();
+
                 foreach (string part in parts)
                 {
                     yield return part;
                 }
             }
         }
+
+#region Nested type: MaterializedEnumerable
 
         private class MaterializedEnumerable<T> : IEnumerable<T>
         {
@@ -504,6 +551,8 @@ namespace CSharpx
                 inner = enumerable as ICollection<T> ?? enumerable.ToArray();
             }
 
+#region IEnumerable<T> Members
+
             public IEnumerator<T> GetEnumerator()
             {
                 return inner.GetEnumerator();
@@ -513,7 +562,12 @@ namespace CSharpx
             {
                 return GetEnumerator();
             }
+
+#endregion
         }
+
+#endregion
+
 #if !CSX_REM_MAYBE_FUNC
         /// <summary>
         ///     Safe function that returns Just(first element) or None.
@@ -523,8 +577,8 @@ namespace CSharpx
             using (IEnumerator<T> e = source.GetEnumerator())
             {
                 return e.MoveNext()
-                    ? Maybe.Just(e.Current)
-                    : Maybe.Nothing<T>();
+                           ? Maybe.Just(e.Current)
+                           : Maybe.Nothing<T>();
             }
         }
 
@@ -536,11 +590,10 @@ namespace CSharpx
             using (IEnumerator<T> e = source.GetEnumerator())
             {
                 return e.MoveNext()
-                    ? Maybe.Just(source)
-                    : Maybe.Nothing<IEnumerable<T>>();
+                           ? Maybe.Just(source)
+                           : Maybe.Nothing<IEnumerable<T>>();
             }
         }
 #endif
     }
-
 }

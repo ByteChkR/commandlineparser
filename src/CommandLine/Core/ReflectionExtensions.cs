@@ -10,30 +10,38 @@ using CommandLine.Infrastructure;
 using CommandLine.Text;
 
 using CSharpx;
+
 namespace CommandLine.Core
 {
-
     internal static class ReflectionExtensions
     {
         public static IEnumerable<T> GetSpecifications<T>(this Type type, Func<PropertyInfo, T> selector)
         {
-            return from pi in type.FlattenHierarchy().SelectMany(x => x.GetTypeInfo().GetProperties())
-                let attrs = pi.GetCustomAttributes(true)
-                where
-                    attrs.OfType<OptionAttribute>().Any() ||
-                    attrs.OfType<ValueAttribute>().Any()
-                group pi by pi.Name
-                into g
-                select selector(g.First());
+            return from pi in type.FlattenHierarchy()
+                                  .SelectMany(x => x.GetTypeInfo()
+                                                    .GetProperties()
+                                             )
+                   let attrs = pi.GetCustomAttributes(true)
+                   where
+                       attrs.OfType<OptionAttribute>()
+                            .Any() ||
+                       attrs.OfType<ValueAttribute>()
+                            .Any()
+                   group pi by pi.Name
+                   into g
+                   select selector(g.First());
         }
 
         public static Maybe<VerbAttribute> GetVerbSpecification(this Type type)
         {
             return
                 (from attr in
-                        type.FlattenHierarchy().SelectMany(x => x.GetTypeInfo().GetCustomAttributes(typeof(VerbAttribute), true))
-                    let vattr = (VerbAttribute)attr
-                    select vattr)
+                     type.FlattenHierarchy()
+                         .SelectMany(x => x.GetTypeInfo()
+                                           .GetCustomAttributes(typeof(VerbAttribute), true)
+                                    )
+                 let vattr = (VerbAttribute)attr
+                 select vattr)
                 .SingleOrDefault()
                 .ToMaybe();
         }
@@ -41,10 +49,13 @@ namespace CommandLine.Core
         public static Maybe<Tuple<PropertyInfo, UsageAttribute>> GetUsageData(this Type type)
         {
             return
-                (from pi in type.FlattenHierarchy().SelectMany(x => x.GetTypeInfo().GetProperties())
-                    let attrs = pi.GetCustomAttributes(typeof(UsageAttribute), true)
-                    where attrs.Any()
-                    select Tuple.Create(pi, (UsageAttribute)attrs.First()))
+                (from pi in type.FlattenHierarchy()
+                                .SelectMany(x => x.GetTypeInfo()
+                                                  .GetProperties()
+                                           )
+                 let attrs = pi.GetCustomAttributes(typeof(UsageAttribute), true)
+                 where attrs.Any()
+                 select Tuple.Create(pi, (UsageAttribute)attrs.First()))
                 .SingleOrDefault()
                 .ToMaybe();
         }
@@ -55,12 +66,17 @@ namespace CommandLine.Core
             {
                 yield break;
             }
+
             yield return type;
+
             foreach (Type @interface in type.SafeGetInterfaces())
             {
                 yield return @interface;
             }
-            foreach (Type @interface in FlattenHierarchy(type.GetTypeInfo().BaseType))
+
+            foreach (Type @interface in FlattenHierarchy(type.GetTypeInfo()
+                                                             .BaseType
+                                                        ))
             {
                 yield return @interface;
             }
@@ -68,23 +84,28 @@ namespace CommandLine.Core
 
         private static IEnumerable<Type> SafeGetInterfaces(this Type type)
         {
-            return type == null ? Enumerable.Empty<Type>() : type.GetTypeInfo().GetInterfaces();
+            return type == null
+                       ? Enumerable.Empty<Type>()
+                       : type.GetTypeInfo()
+                             .GetInterfaces();
         }
 
         public static TargetType ToTargetType(this Type type)
         {
             return type == typeof(bool) ? TargetType.Switch :
-                type == typeof(string) ? TargetType.Scalar :
-                type.IsArray || typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(type) ? TargetType.Sequence : TargetType.Scalar;
+                   type == typeof(string) ? TargetType.Scalar :
+                   type.IsArray ||
+                   typeof(IEnumerable).GetTypeInfo()
+                                      .IsAssignableFrom(type) ? TargetType.Sequence : TargetType.Scalar;
         }
 
-        public static IEnumerable<Error> SetProperties<T>(
-            this T instance,
-            IEnumerable<SpecificationProperty> specProps,
-            Func<SpecificationProperty, bool> predicate,
-            Func<SpecificationProperty, object> selector)
+        public static IEnumerable<Error> SetProperties<T>(this T instance,
+                                                          IEnumerable<SpecificationProperty> specProps,
+                                                          Func<SpecificationProperty, bool> predicate,
+                                                          Func<SpecificationProperty, object> selector)
         {
-            return specProps.Where(predicate).SelectMany(specProp => specProp.SetValue(instance, selector(specProp)));
+            return specProps.Where(predicate)
+                            .SelectMany(specProp => specProp.SetValue(instance, selector(specProp)));
         }
 
         private static IEnumerable<Error> SetValue<T>(this SpecificationProperty specProp, T instance, object value)
@@ -92,6 +113,7 @@ namespace CommandLine.Core
             try
             {
                 specProp.Property.SetValue(instance, value, null);
+
                 return Enumerable.Empty<Error>();
             }
             catch (TargetInvocationException e)
@@ -105,18 +127,12 @@ namespace CommandLine.Core
             {
                 ArgumentException argEx = new ArgumentException(InvalidAttributeConfigurationError.ErrorMessage, e);
 
-                return new[]
-                {
-                    new SetValueExceptionError(specProp.Specification.FromSpecification(), argEx, value),
-                };
+                return new[] { new SetValueExceptionError(specProp.Specification.FromSpecification(), argEx, value) };
             }
 
             catch (Exception e)
             {
-                return new[]
-                {
-                    new SetValueExceptionError(specProp.Specification.FromSpecification(), e, value),
-                };
+                return new[] { new SetValueExceptionError(specProp.Specification.FromSpecification(), e, value) };
             }
         }
 
@@ -138,13 +154,19 @@ namespace CommandLine.Core
             }
 
             // Find all inherited defined properties and fields on the type
-            IEnumerable<Type> inheritedTypes = type.GetTypeInfo().FlattenHierarchy().Select(i => i.GetTypeInfo());
+            IEnumerable<Type> inheritedTypes = type.GetTypeInfo()
+                                                   .FlattenHierarchy()
+                                                   .Select(i => i.GetTypeInfo());
 
             foreach (Type inheritedType in inheritedTypes)
             {
                 if (
-                    inheritedType.GetTypeInfo().GetProperties(BindingFlags.Public | BindingFlags.Instance).Any(p => p.CanWrite) ||
-                    inheritedType.GetTypeInfo().GetFields(BindingFlags.Public | BindingFlags.Instance).Any()
+                    inheritedType.GetTypeInfo()
+                                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                 .Any(p => p.CanWrite) ||
+                    inheritedType.GetTypeInfo()
+                                 .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                                 .Any()
                 )
                 {
                     return true;
@@ -156,10 +178,17 @@ namespace CommandLine.Core
 
         public static object CreateDefaultForImmutable(this Type type)
         {
-            if (type.GetTypeInfo().IsGenericType && type.GetTypeInfo().GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            if (type.GetTypeInfo()
+                    .IsGenericType &&
+                type.GetTypeInfo()
+                    .GetGenericTypeDefinition() ==
+                typeof(IEnumerable<>))
             {
-                return type.GetTypeInfo().GetGenericArguments()[0].CreateEmptyArray();
+                return type.GetTypeInfo()
+                           .GetGenericArguments()[0]
+                           .CreateEmptyArray();
             }
+
             return type.GetDefaultValue();
         }
 
@@ -170,7 +199,8 @@ namespace CommandLine.Core
                 return Activator.CreateInstance(type);
             }
 
-            Type[] ctorTypes = type.GetSpecifications(pi => pi.PropertyType).ToArray();
+            Type[] ctorTypes = type.GetSpecifications(pi => pi.PropertyType)
+                                   .ToArray();
 
             return ReflectionHelper.CreateDefaultImmutableInstance(type, ctorTypes);
         }
@@ -182,70 +212,69 @@ namespace CommandLine.Core
 
         public static object StaticMethod(this Type type, string name, params object[] args)
         {
-            return type.GetTypeInfo().InvokeMember(
-                name,
-                BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static,
-                null,
-                null,
-                args
-            );
+            return type.GetTypeInfo()
+                       .InvokeMember(name,
+                                     BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static,
+                                     null,
+                                     null,
+                                     args
+                                    );
         }
 
         public static object StaticProperty(this Type type, string name)
         {
-            return type.GetTypeInfo().InvokeMember(
-                name,
-                BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Static,
-                null,
-                null,
-                new object[]
-                    { }
-            );
+            return type.GetTypeInfo()
+                       .InvokeMember(name,
+                                     BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Static,
+                                     null,
+                                     null,
+                                     new object[] { }
+                                    );
         }
 
         public static object InstanceProperty(this Type type, string name, object target)
         {
-            return type.GetTypeInfo().InvokeMember(
-                name,
-                BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance,
-                null,
-                target,
-                new object[]
-                    { }
-            );
+            return type.GetTypeInfo()
+                       .InvokeMember(name,
+                                     BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance,
+                                     null,
+                                     target,
+                                     new object[] { }
+                                    );
         }
 
         public static bool IsPrimitiveEx(this Type type)
         {
             return
-                type.GetTypeInfo().IsValueType && type != typeof(Guid) ||
-                type.GetTypeInfo().IsPrimitive ||
-                new[]
-                {
-                    typeof(string),
-                    typeof(decimal),
-                    typeof(DateTime),
-                    typeof(DateTimeOffset),
-                    typeof(TimeSpan),
-                }.Contains(type) ||
+                (type.GetTypeInfo()
+                     .IsValueType &&
+                 type != typeof(Guid)) ||
+                type.GetTypeInfo()
+                    .IsPrimitive ||
+                new[] { typeof(string), typeof(decimal), typeof(DateTime), typeof(DateTimeOffset), typeof(TimeSpan) }
+                    .Contains(type) ||
                 Convert.GetTypeCode(type) != TypeCode.Object;
         }
 
         public static bool IsCustomStruct(this Type type)
         {
-            bool isStruct = type.GetTypeInfo().IsValueType && !type.GetTypeInfo().IsPrimitive && !type.GetTypeInfo().IsEnum && type != typeof(Guid);
+            bool isStruct = type.GetTypeInfo()
+                                .IsValueType &&
+                            !type.GetTypeInfo()
+                                 .IsPrimitive &&
+                            !type.GetTypeInfo()
+                                 .IsEnum &&
+                            type != typeof(Guid);
+
             if (!isStruct)
             {
                 return false;
             }
-            ConstructorInfo ctor = type.GetTypeInfo().GetConstructor(
-                new[]
-                {
-                    typeof(string),
-                }
-            );
+
+            ConstructorInfo ctor = type.GetTypeInfo()
+                                       .GetConstructor(new[] { typeof(string) });
+
             return ctor != null;
         }
     }
-
 }

@@ -4,18 +4,23 @@ using System;
 using System.Collections.Generic;
 
 using CSharpx;
+
 namespace CommandLine.Core
 {
-
     internal static class SpecificationGuards
     {
-        public static readonly IEnumerable<Tuple<Func<Specification, bool>, string>> Lookup = new List<Tuple<Func<Specification, bool>, string>>
-        {
-            Tuple.Create(GuardAgainstScalarWithRange(), "Scalar option specifications do not support range specification."),
-            Tuple.Create(GuardAgainstSequenceWithWrongRange(), "Bad range in sequence option specifications."),
-            Tuple.Create(GuardAgainstSequenceWithZeroRange(), "Zero is not allowed in range of sequence option specifications."),
-            Tuple.Create(GuardAgainstOneCharLongName(), "Long name should be longer than one character."),
-        };
+        public static readonly IEnumerable<Tuple<Func<Specification, bool>, string>> Lookup =
+            new List<Tuple<Func<Specification, bool>, string>>
+            {
+                Tuple.Create(GuardAgainstScalarWithRange(),
+                             "Scalar option specifications do not support range specification."
+                            ),
+                Tuple.Create(GuardAgainstSequenceWithWrongRange(), "Bad range in sequence option specifications."),
+                Tuple.Create(GuardAgainstSequenceWithZeroRange(),
+                             "Zero is not allowed in range of sequence option specifications."
+                            ),
+                Tuple.Create(GuardAgainstOneCharLongName(), "Long name should be longer than one character."),
+            };
 
         private static Func<Specification, bool> GuardAgainstScalarWithRange()
         {
@@ -34,8 +39,9 @@ namespace CommandLine.Core
 
         private static Func<Specification, bool> GuardAgainstSequenceWithZeroRange()
         {
-            return spec => spec.TargetType == TargetType.Sequence && (spec.HavingMin(min => min == 0) || spec.HavingMax(max => max == 0));
+            return spec =>
+                spec.TargetType == TargetType.Sequence &&
+                (spec.HavingMin(min => min == 0) || spec.HavingMax(max => max == 0));
         }
     }
-
 }

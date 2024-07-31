@@ -11,22 +11,17 @@ using CommandLine.Text;
 using CSharpx;
 
 using RailwaySharp.ErrorHandling;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Provides methods to parse command line arguments.
     /// </summary>
     public class Parser : IDisposable
     {
-        private static readonly Lazy<Parser> DefaultParser = new Lazy<Parser>(
-            () => new Parser(
-                new ParserSettings
-                {
-                    HelpWriter = Console.Error,
-                }
-            )
-        );
+        private static readonly Lazy<Parser> DefaultParser =
+            new Lazy<Parser>(() => new Parser(new ParserSettings { HelpWriter = Console.Error }));
+
         private bool disposed;
 
         /// <summary>
@@ -34,10 +29,7 @@ namespace CommandLine
         /// </summary>
         public Parser()
         {
-            Settings = new ParserSettings
-            {
-                Consumed = true,
-            };
+            Settings = new ParserSettings { Consumed = true };
         }
 
         /// <summary>
@@ -73,8 +65,8 @@ namespace CommandLine
 
         internal Parser(ParserSettings settings)
         {
-            this.Settings = settings;
-            this.Settings.Consumed = true;
+            Settings = settings;
+            Settings.Consumed = true;
         }
 
         /// <summary>
@@ -87,6 +79,8 @@ namespace CommandLine
         /// </summary>
         public ParserSettings Settings { get; }
 
+#region IDisposable Members
+
         /// <summary>
         ///     Frees resources owned by the instance.
         /// </summary>
@@ -96,6 +90,8 @@ namespace CommandLine
 
             GC.SuppressFinalize(this);
         }
+
+#endregion
 
         /// <summary>
         ///     Finalizes an instance of the <see cref="CommandLine.Parser" /> class.
@@ -129,24 +125,23 @@ namespace CommandLine
             }
 
             Maybe<Func<T>> factory = typeof(T).IsMutable()
-                ? Maybe.Just<Func<T>>(Activator.CreateInstance<T>)
-                : Maybe.Nothing<Func<T>>();
+                                         ? Maybe.Just<Func<T>>(Activator.CreateInstance<T>)
+                                         : Maybe.Nothing<Func<T>>();
 
-            return MakeParserResult(
-                InstanceBuilder.Build(
-                    factory,
-                    (arguments, optionSpecs) => Tokenize(arguments, optionSpecs, Settings),
-                    args,
-                    Settings.NameComparer,
-                    Settings.CaseInsensitiveEnumValues,
-                    Settings.ParsingCulture,
-                    Settings.AutoHelp,
-                    Settings.AutoVersion,
-                    Settings.AllowMultiInstance,
-                    HandleUnknownArguments(Settings.IgnoreUnknownArguments)
-                ),
-                Settings
-            );
+            return MakeParserResult(InstanceBuilder.Build(factory,
+                                                          (arguments, optionSpecs) =>
+                                                              Tokenize(arguments, optionSpecs, Settings),
+                                                          args,
+                                                          Settings.NameComparer,
+                                                          Settings.CaseInsensitiveEnumValues,
+                                                          Settings.ParsingCulture,
+                                                          Settings.AutoHelp,
+                                                          Settings.AutoVersion,
+                                                          Settings.AllowMultiInstance,
+                                                          HandleUnknownArguments(Settings.IgnoreUnknownArguments)
+                                                         ),
+                                    Settings
+                                   );
         }
 
         /// <summary>
@@ -172,30 +167,31 @@ namespace CommandLine
             {
                 throw new ArgumentNullException("factory");
             }
+
             if (!typeof(T).IsMutable())
             {
                 throw new ArgumentException("factory");
             }
+
             if (args == null)
             {
                 throw new ArgumentNullException("args");
             }
 
-            return MakeParserResult(
-                InstanceBuilder.Build(
-                    Maybe.Just(factory),
-                    (arguments, optionSpecs) => Tokenize(arguments, optionSpecs, Settings),
-                    args,
-                    Settings.NameComparer,
-                    Settings.CaseInsensitiveEnumValues,
-                    Settings.ParsingCulture,
-                    Settings.AutoHelp,
-                    Settings.AutoVersion,
-                    Settings.AllowMultiInstance,
-                    HandleUnknownArguments(Settings.IgnoreUnknownArguments)
-                ),
-                Settings
-            );
+            return MakeParserResult(InstanceBuilder.Build(Maybe.Just(factory),
+                                                          (arguments, optionSpecs) =>
+                                                              Tokenize(arguments, optionSpecs, Settings),
+                                                          args,
+                                                          Settings.NameComparer,
+                                                          Settings.CaseInsensitiveEnumValues,
+                                                          Settings.ParsingCulture,
+                                                          Settings.AutoHelp,
+                                                          Settings.AutoVersion,
+                                                          Settings.AllowMultiInstance,
+                                                          HandleUnknownArguments(Settings.IgnoreUnknownArguments)
+                                                         ),
+                                    Settings
+                                   );
         }
 
         /// <summary>
@@ -223,67 +219,67 @@ namespace CommandLine
             {
                 throw new ArgumentNullException("args");
             }
+
             if (types == null)
             {
                 throw new ArgumentNullException("types");
             }
+
             if (types.Length == 0)
             {
                 throw new ArgumentOutOfRangeException("types");
             }
 
-            return MakeParserResult(
-                InstanceChooser.Choose(
-                    (arguments, optionSpecs) => Tokenize(arguments, optionSpecs, Settings),
-                    types,
-                    args,
-                    Settings.NameComparer,
-                    Settings.CaseInsensitiveEnumValues,
-                    Settings.ParsingCulture,
-                    Settings.AutoHelp,
-                    Settings.AutoVersion,
-                    Settings.AllowMultiInstance,
-                    HandleUnknownArguments(Settings.IgnoreUnknownArguments)
-                ),
-                Settings
-            );
+            return MakeParserResult(InstanceChooser.Choose((arguments, optionSpecs) =>
+                                                               Tokenize(arguments, optionSpecs, Settings),
+                                                           types,
+                                                           args,
+                                                           Settings.NameComparer,
+                                                           Settings.CaseInsensitiveEnumValues,
+                                                           Settings.ParsingCulture,
+                                                           Settings.AutoHelp,
+                                                           Settings.AutoVersion,
+                                                           Settings.AllowMultiInstance,
+                                                           HandleUnknownArguments(Settings.IgnoreUnknownArguments)
+                                                          ),
+                                    Settings
+                                   );
         }
 
-        private static Result<IEnumerable<Token>, Error> Tokenize(
-            IEnumerable<string> arguments,
-            IEnumerable<OptionSpecification> optionSpecs,
-            ParserSettings settings)
+        private static Result<IEnumerable<Token>, Error> Tokenize(IEnumerable<string> arguments,
+                                                                  IEnumerable<OptionSpecification> optionSpecs,
+                                                                  ParserSettings settings)
         {
             return settings.GetoptMode
-                ? GetoptTokenizer.ConfigureTokenizer(
-                    settings.NameComparer,
-                    settings.IgnoreUnknownArguments,
-                    settings.EnableDashDash,
-                    settings.PosixlyCorrect
-                )(arguments, optionSpecs)
-                : Tokenizer.ConfigureTokenizer(
-                    settings.NameComparer,
-                    settings.IgnoreUnknownArguments,
-                    settings.EnableDashDash
-                )(arguments, optionSpecs);
+                       ? GetoptTokenizer.ConfigureTokenizer(settings.NameComparer,
+                                                            settings.IgnoreUnknownArguments,
+                                                            settings.EnableDashDash,
+                                                            settings.PosixlyCorrect
+                                                           )(arguments, optionSpecs)
+                       : Tokenizer.ConfigureTokenizer(settings.NameComparer,
+                                                      settings.IgnoreUnknownArguments,
+                                                      settings.EnableDashDash
+                                                     )(arguments, optionSpecs);
         }
 
         private static ParserResult<T> MakeParserResult<T>(ParserResult<T> parserResult, ParserSettings settings)
         {
-            return DisplayHelp(
-                parserResult,
-                settings.HelpWriter,
-                settings.MaximumDisplayWidth
-            );
+            return DisplayHelp(parserResult,
+                               settings.HelpWriter,
+                               settings.MaximumDisplayWidth
+                              );
         }
 
-        private static ParserResult<T> DisplayHelp<T>(ParserResult<T> parserResult, TextWriter helpWriter, int maxDisplayWidth)
+        private static ParserResult<T> DisplayHelp<T>(ParserResult<T> parserResult,
+                                                      TextWriter helpWriter,
+                                                      int maxDisplayWidth)
         {
-            parserResult.WithNotParsed(
-                errors =>
-                    Maybe.Merge(errors.ToMaybe(), helpWriter.ToMaybe())
-                        .Do((_, writer) => writer.Write(HelpText.AutoBuild(parserResult, maxDisplayWidth)))
-            );
+            parserResult.WithNotParsed(errors =>
+                                           Maybe.Merge(errors.ToMaybe(), helpWriter.ToMaybe())
+                                                .Do((_, writer) =>
+                                                        writer.Write(HelpText.AutoBuild(parserResult, maxDisplayWidth))
+                                                   )
+                                      );
 
             return parserResult;
         }
@@ -291,8 +287,9 @@ namespace CommandLine
         private static IEnumerable<ErrorType> HandleUnknownArguments(bool ignoreUnknownArguments)
         {
             return ignoreUnknownArguments
-                ? Enumerable.Empty<ErrorType>().Concat(ErrorType.UnknownOptionError)
-                : Enumerable.Empty<ErrorType>();
+                       ? Enumerable.Empty<ErrorType>()
+                                   .Concat(ErrorType.UnknownOptionError)
+                       : Enumerable.Empty<ErrorType>();
         }
 
         private void Dispose(bool disposing)
@@ -313,5 +310,4 @@ namespace CommandLine
             }
         }
     }
-
 }

@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace CommandLine.Core
 {
-
     internal static class SpecificationExtensions
     {
         public static bool IsOption(this Specification specification)
@@ -20,24 +20,23 @@ namespace CommandLine.Core
 
         public static OptionSpecification WithLongName(this OptionSpecification specification, string newLongName)
         {
-            return new OptionSpecification(
-                specification.ShortName,
-                newLongName,
-                specification.Required,
-                specification.SetName,
-                specification.Min,
-                specification.Max,
-                specification.Separator,
-                specification.DefaultValue,
-                specification.HelpText,
-                specification.MetaValue,
-                specification.EnumValues,
-                specification.ConversionType,
-                specification.TargetType,
-                specification.Group,
-                specification.FlagCounter,
-                specification.Hidden
-            );
+            return new OptionSpecification(specification.ShortName,
+                                           newLongName,
+                                           specification.Required,
+                                           specification.SetName,
+                                           specification.Min,
+                                           specification.Max,
+                                           specification.Separator,
+                                           specification.DefaultValue,
+                                           specification.HelpText,
+                                           specification.MetaValue,
+                                           specification.EnumValues,
+                                           specification.ConversionType,
+                                           specification.TargetType,
+                                           specification.Group,
+                                           specification.FlagCounter,
+                                           specification.Hidden
+                                          );
         }
 
         public static string UniqueName(this OptionSpecification specification)
@@ -45,7 +44,9 @@ namespace CommandLine.Core
             return specification.ShortName.Length > 0 ? specification.ShortName : specification.LongName;
         }
 
-        public static IEnumerable<Specification> ThrowingValidate(this IEnumerable<Specification> specifications, IEnumerable<Tuple<Func<Specification, bool>, string>> guardsLookup)
+        public static IEnumerable<Specification> ThrowingValidate(this IEnumerable<Specification> specifications,
+                                                                  IEnumerable<Tuple<Func<Specification, bool>, string>>
+                                                                      guardsLookup)
         {
             foreach (Tuple<Func<Specification, bool>, string> guard in guardsLookup)
             {
@@ -62,32 +63,37 @@ namespace CommandLine.Core
         {
             int min;
             int max;
+
             if (specification.Min.MatchJust(out min) && specification.Max.MatchJust(out max))
             {
                 return predicate(min, max);
             }
+
             return false;
         }
 
         public static bool HavingMin(this Specification specification, Func<int, bool> predicate)
         {
             int min;
+
             if (specification.Min.MatchJust(out min))
             {
                 return predicate(min);
             }
+
             return false;
         }
 
         public static bool HavingMax(this Specification specification, Func<int, bool> predicate)
         {
             int max;
+
             if (specification.Max.MatchJust(out max))
             {
                 return predicate(max);
             }
+
             return false;
         }
     }
-
 }

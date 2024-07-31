@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Discriminator enumeration of <see cref="CommandLine.Error" /> derivates.
     /// </summary>
@@ -15,75 +15,91 @@ namespace CommandLine
         ///     Value of <see cref="CommandLine.BadFormatTokenError" /> type.
         /// </summary>
         BadFormatTokenError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.MissingValueOptionError" /> type.
         /// </summary>
         MissingValueOptionError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.UnknownOptionError" /> type.
         /// </summary>
         UnknownOptionError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.MissingRequiredOptionError" /> type.
         /// </summary>
         MissingRequiredOptionError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.MutuallyExclusiveSetError" /> type.
         /// </summary>
         MutuallyExclusiveSetError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.BadFormatConversionError" /> type.
         /// </summary>
         BadFormatConversionError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.SequenceOutOfRangeError" /> type.
         /// </summary>
         SequenceOutOfRangeError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.RepeatedOptionError" /> type.
         /// </summary>
         RepeatedOptionError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.NoVerbSelectedError" /> type.
         /// </summary>
         NoVerbSelectedError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.BadVerbSelectedError" /> type.
         /// </summary>
         BadVerbSelectedError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.HelpRequestedError" /> type.
         /// </summary>
         HelpRequestedError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.HelpVerbRequestedError" /> type.
         /// </summary>
         HelpVerbRequestedError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.VersionRequestedError" /> type.
         /// </summary>
         VersionRequestedError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.SetValueExceptionError" /> type.
         /// </summary>
         SetValueExceptionError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.InvalidAttributeConfigurationError" /> type.
         /// </summary>
         InvalidAttributeConfigurationError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.MissingGroupOptionError" /> type.
         /// </summary>
         MissingGroupOptionError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.GroupOptionAmbiguityError" /> type.
         /// </summary>
         GroupOptionAmbiguityError,
+
         /// <summary>
         ///     Value of <see cref="CommandLine.MultipleDefaultVerbsError" /> type.
         /// </summary>
         MultipleDefaultVerbsError,
-
     }
 
     /// <summary>
@@ -92,7 +108,6 @@ namespace CommandLine
     /// <remarks>All errors are defined within the system. There's no reason to create custom derivate types.</remarks>
     public abstract class Error : IEquatable<Error>
     {
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="CommandLine.Error" /> class.
         /// </summary>
@@ -100,8 +115,8 @@ namespace CommandLine
         /// <param name="stopsProcessing">Tells if error stops parsing process.</param>
         protected internal Error(ErrorType tag, bool stopsProcessing)
         {
-            this.Tag = tag;
-            this.StopsProcessing = stopsProcessing;
+            Tag = tag;
+            StopsProcessing = stopsProcessing;
         }
 
         /// <summary>
@@ -122,6 +137,8 @@ namespace CommandLine
         ///     <see cref="CommandLine.ErrorExtensions.OnlyMeaningfulOnes(System.Collections.Generic.IEnumerable{Error})" />.
         /// </summary>
         public bool StopsProcessing { get; }
+
+#region IEquatable<Error> Members
 
         /// <summary>
         ///     Returns a value that indicates whether the current instance and a specified <see cref="CommandLine.Error" /> have
@@ -144,6 +161,8 @@ namespace CommandLine
             return Tag.Equals(other.Tag);
         }
 
+#endregion
+
         /// <summary>
         ///     Determines whether the specified <see cref="System.Object" /> is equal to the current <see cref="System.Object" />.
         /// </summary>
@@ -157,6 +176,7 @@ namespace CommandLine
         public override bool Equals(object obj)
         {
             Error other = obj as Error;
+
             if (other != null)
             {
                 return Equals(other);
@@ -171,11 +191,7 @@ namespace CommandLine
         /// <remarks>A hash code for the current <see cref="System.Object" />.</remarks>
         public override int GetHashCode()
         {
-            return new
-            {
-                Tag,
-                StopsProcessing,
-            }.GetHashCode();
+            return new { Tag, StopsProcessing }.GetHashCode();
         }
     }
 
@@ -184,7 +200,6 @@ namespace CommandLine
     /// </summary>
     public abstract class TokenError : Error, IEquatable<TokenError>
     {
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="CommandLine.TokenError" /> class.
         /// </summary>
@@ -198,13 +213,15 @@ namespace CommandLine
                 throw new ArgumentNullException("token");
             }
 
-            this.Token = token;
+            Token = token;
         }
 
         /// <summary>
         ///     The string containing the token text.
         /// </summary>
         public string Token { get; }
+
+#region IEquatable<TokenError> Members
 
         /// <summary>
         ///     Returns a value that indicates whether the current instance and a specified <see cref="CommandLine.TokenError" />
@@ -228,6 +245,8 @@ namespace CommandLine
             return Tag.Equals(other.Tag) && Token.Equals(other.Token);
         }
 
+#endregion
+
         /// <summary>
         ///     Determines whether the specified <see cref="System.Object" /> is equal to the current <see cref="System.Object" />.
         /// </summary>
@@ -241,6 +260,7 @@ namespace CommandLine
         public override bool Equals(object obj)
         {
             TokenError other = obj as TokenError;
+
             if (other != null)
             {
                 return Equals(other);
@@ -255,12 +275,7 @@ namespace CommandLine
         /// <remarks>A hash code for the current <see cref="System.Object" />.</remarks>
         public override int GetHashCode()
         {
-            return new
-            {
-                Tag,
-                StopsProcessing,
-                Token,
-            }.GetHashCode();
+            return new { Tag, StopsProcessing, Token }.GetHashCode();
         }
     }
 
@@ -278,7 +293,6 @@ namespace CommandLine
     /// </summary>
     public abstract class NamedError : Error, IEquatable<NamedError>
     {
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="CommandLine.NamedError" /> class.
         /// </summary>
@@ -287,13 +301,15 @@ namespace CommandLine
         protected internal NamedError(ErrorType tag, NameInfo nameInfo)
             : base(tag)
         {
-            this.NameInfo = nameInfo;
+            NameInfo = nameInfo;
         }
 
         /// <summary>
         ///     Name information relative to this error instance.
         /// </summary>
         public NameInfo NameInfo { get; }
+
+#region IEquatable<NamedError> Members
 
         /// <summary>
         ///     Returns a value that indicates whether the current instance and a specified <see cref="CommandLine.NamedError" />
@@ -317,6 +333,8 @@ namespace CommandLine
             return Tag.Equals(other.Tag) && NameInfo.Equals(other.NameInfo);
         }
 
+#endregion
+
         /// <summary>
         ///     Determines whether the specified <see cref="System.Object" /> is equal to the current <see cref="System.Object" />.
         /// </summary>
@@ -330,6 +348,7 @@ namespace CommandLine
         public override bool Equals(object obj)
         {
             NamedError other = obj as NamedError;
+
             if (other != null)
             {
                 return Equals(other);
@@ -344,12 +363,7 @@ namespace CommandLine
         /// <remarks>A hash code for the current <see cref="System.Object" />.</remarks>
         public override int GetHashCode()
         {
-            return new
-            {
-                Tag,
-                StopsProcessing,
-                NameInfo,
-            }.GetHashCode();
+            return new { Tag, StopsProcessing, NameInfo }.GetHashCode();
         }
     }
 
@@ -385,11 +399,10 @@ namespace CommandLine
     /// </summary>
     public sealed class MutuallyExclusiveSetError : NamedError
     {
-
         internal MutuallyExclusiveSetError(NameInfo nameInfo, string setName)
             : base(ErrorType.MutuallyExclusiveSetError, nameInfo)
         {
-            this.SetName = setName;
+            SetName = setName;
         }
 
         /// <summary>
@@ -448,13 +461,12 @@ namespace CommandLine
     /// </summary>
     public sealed class HelpVerbRequestedError : Error
     {
-
         internal HelpVerbRequestedError(string verb, Type type, bool matched)
             : base(ErrorType.HelpVerbRequestedError, true)
         {
-            this.Verb = verb;
-            this.Type = type;
-            this.Matched = matched;
+            Verb = verb;
+            Type = type;
+            Matched = matched;
         }
 
         /// <summary>
@@ -499,12 +511,11 @@ namespace CommandLine
     /// </summary>
     public sealed class SetValueExceptionError : NamedError
     {
-
         internal SetValueExceptionError(NameInfo nameInfo, Exception exception, object value)
             : base(ErrorType.SetValueExceptionError, nameInfo)
         {
-            this.Exception = exception;
-            this.Value = value;
+            Exception = exception;
+            Value = value;
         }
 
         /// <summary>
@@ -523,7 +534,8 @@ namespace CommandLine
     /// </summary>
     public sealed class InvalidAttributeConfigurationError : Error
     {
-        public const string ErrorMessage = "Check if Option or Value attribute values are set properly for the given type.";
+        public const string ErrorMessage =
+            "Check if Option or Value attribute values are set properly for the given type.";
 
         internal InvalidAttributeConfigurationError()
             : base(ErrorType.InvalidAttributeConfigurationError, true) { }
@@ -536,17 +548,20 @@ namespace CommandLine
         internal MissingGroupOptionError(string group, IEnumerable<NameInfo> names)
             : base(ErrorType.MissingGroupOptionError)
         {
-            this.Group = group;
-            this.Names = names;
+            Group = group;
+            Names = names;
         }
 
         public string Group { get; }
 
         public IEnumerable<NameInfo> Names { get; }
 
+#region IEquatable<Error> Members
+
         public new bool Equals(Error obj)
         {
             MissingGroupOptionError other = obj as MissingGroupOptionError;
+
             if (other != null)
             {
                 return Equals(other);
@@ -554,6 +569,10 @@ namespace CommandLine
 
             return base.Equals(obj);
         }
+
+#endregion
+
+#region IEquatable<MissingGroupOptionError> Members
 
         public bool Equals(MissingGroupOptionError other)
         {
@@ -564,6 +583,8 @@ namespace CommandLine
 
             return Group.Equals(other.Group) && Names.SequenceEqual(other.Names);
         }
+
+#endregion
     }
 
     public sealed class GroupOptionAmbiguityError : NamedError
@@ -587,5 +608,4 @@ namespace CommandLine
         internal MultipleDefaultVerbsError()
             : base(ErrorType.MultipleDefaultVerbsError) { }
     }
-
 }

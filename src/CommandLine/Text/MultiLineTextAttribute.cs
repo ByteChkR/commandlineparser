@@ -3,15 +3,14 @@
 using System;
 using System.Linq;
 using System.Text;
+
 namespace CommandLine.Text
 {
-
     /// <summary>
     ///     Provides base properties for creating an attribute, used to define multiple lines of text.
     /// </summary>
     public abstract class MultilineTextAttribute : Attribute
     {
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="MultilineTextAttribute" /> class. Used in derived type
         ///     using one line of text.
@@ -65,28 +64,32 @@ namespace CommandLine.Text
             {
                 throw new ArgumentException("line1");
             }
+
             if (line2 == null)
             {
                 throw new ArgumentException("line2");
             }
+
             if (line3 == null)
             {
                 throw new ArgumentException("line3");
             }
+
             if (line4 == null)
             {
                 throw new ArgumentException("line4");
             }
+
             if (line5 == null)
             {
                 throw new ArgumentException("line5");
             }
 
-            this.Line1 = line1;
-            this.Line2 = line2;
-            this.Line3 = line3;
-            this.Line4 = line4;
-            this.Line5 = line5;
+            Line1 = line1;
+            Line2 = line2;
+            Line3 = line3;
+            Line4 = line4;
+            Line5 = line5;
         }
 
         /// <summary>
@@ -98,14 +101,7 @@ namespace CommandLine.Text
             get
             {
                 StringBuilder value = new StringBuilder(string.Empty);
-                string[] strArray =
-                {
-                    Line1,
-                    Line2,
-                    Line3,
-                    Line4,
-                    Line5,
-                };
+                string[] strArray = { Line1, Line2, Line3, Line4, Line5 };
 
                 for (int i = 0; i < GetLastLineWithText(strArray); i++)
                 {
@@ -143,15 +139,10 @@ namespace CommandLine.Text
 
         internal HelpText AddToHelpText(HelpText helpText, Func<string, HelpText> func)
         {
-            string[] strArray =
-            {
-                Line1,
-                Line2,
-                Line3,
-                Line4,
-                Line5,
-            };
-            return strArray.Take(GetLastLineWithText(strArray)).Aggregate(helpText, (current, line) => func(line));
+            string[] strArray = { Line1, Line2, Line3, Line4, Line5 };
+
+            return strArray.Take(GetLastLineWithText(strArray))
+                           .Aggregate(helpText, (current, line) => func(line));
         }
 
         internal HelpText AddToHelpText(HelpText helpText, bool before)
@@ -159,8 +150,8 @@ namespace CommandLine.Text
             // before flag only distinguishes which action is called, 
             // so refactor common code and call with appropriate func
             return before
-                ? AddToHelpText(helpText, helpText.AddPreOptionsLine)
-                : AddToHelpText(helpText, helpText.AddPostOptionsLine);
+                       ? AddToHelpText(helpText, helpText.AddPreOptionsLine)
+                       : AddToHelpText(helpText, helpText.AddPostOptionsLine);
         }
 
         /// <summary>
@@ -178,5 +169,4 @@ namespace CommandLine.Text
             return index + 1;
         }
     }
-
 }

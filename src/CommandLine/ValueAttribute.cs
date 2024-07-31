@@ -1,9 +1,9 @@
 ﻿// Copyright 2005-2015 Giacomo Stelluti Scala & Contributors. All rights reserved. See License.md in the project root for license information.
 
 using System;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Models an value specification, or better how to handle values not bound to options.
     /// </summary>
@@ -17,7 +17,7 @@ namespace CommandLine
         /// </summary>
         public ValueAttribute(int index)
         {
-            this.Index = index;
+            Index = index;
             metaName = string.Empty;
         }
 
@@ -35,5 +35,4 @@ namespace CommandLine
             set => metaName = value ?? throw new ArgumentNullException("value");
         }
     }
-
 }

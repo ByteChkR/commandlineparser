@@ -2,7 +2,6 @@
 
 namespace CommandLine
 {
-
     /// <summary>
     ///     Models a null result when constructing a <see cref="ParserResult{T}" /> in a faling verbs scenario.
     /// </summary>
@@ -10,5 +9,4 @@ namespace CommandLine
     {
         internal NullInstance() { }
     }
-
 }

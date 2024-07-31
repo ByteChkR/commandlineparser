@@ -1,9 +1,9 @@
 ﻿// Copyright 2005-2015 Giacomo Stelluti Scala & Contributors. All rights reserved. See License.md in the project root for license information.
 
 using System;
+
 namespace CommandLine.Core
 {
-
     internal enum TokenType
     {
         Name,
@@ -12,11 +12,10 @@ namespace CommandLine.Core
 
     internal abstract class Token
     {
-
         protected Token(TokenType tag, string text)
         {
-            this.Tag = tag;
-            this.Text = text;
+            Tag = tag;
+            Text = text;
         }
 
         public TokenType Tag { get; }
@@ -54,6 +53,8 @@ namespace CommandLine.Core
         public Name(string text)
             : base(TokenType.Name, text) { }
 
+#region IEquatable<Name> Members
+
         public bool Equals(Name other)
         {
             if (other == null)
@@ -64,9 +65,12 @@ namespace CommandLine.Core
             return Tag.Equals(other.Tag) && Text.Equals(other.Text);
         }
 
+#endregion
+
         public override bool Equals(object obj)
         {
             Name other = obj as Name;
+
             if (other != null)
             {
                 return Equals(other);
@@ -77,17 +81,12 @@ namespace CommandLine.Core
 
         public override int GetHashCode()
         {
-            return new
-            {
-                Tag,
-                Text,
-            }.GetHashCode();
+            return new { Tag, Text }.GetHashCode();
         }
     }
 
     internal class Value : Token, IEquatable<Value>
     {
-
         public Value(string text)
             : this(text, false, false, false) { }
 
@@ -97,9 +96,9 @@ namespace CommandLine.Core
         public Value(string text, bool explicitlyAssigned, bool forced, bool fromSeparator)
             : base(TokenType.Value, text)
         {
-            this.ExplicitlyAssigned = explicitlyAssigned;
-            this.Forced = forced;
-            this.FromSeparator = fromSeparator;
+            ExplicitlyAssigned = explicitlyAssigned;
+            Forced = forced;
+            FromSeparator = fromSeparator;
         }
 
         /// <summary>
@@ -117,6 +116,8 @@ namespace CommandLine.Core
         /// </summary>
         public bool Forced { get; }
 
+#region IEquatable<Value> Members
+
         public bool Equals(Value other)
         {
             if (other == null)
@@ -127,9 +128,12 @@ namespace CommandLine.Core
             return Tag.Equals(other.Tag) && Text.Equals(other.Text) && Forced == other.Forced;
         }
 
+#endregion
+
         public override bool Equals(object obj)
         {
             Value other = obj as Value;
+
             if (other != null)
             {
                 return Equals(other);
@@ -140,11 +144,7 @@ namespace CommandLine.Core
 
         public override int GetHashCode()
         {
-            return new
-            {
-                Tag,
-                Text,
-            }.GetHashCode();
+            return new { Tag, Text }.GetHashCode();
         }
     }
 
@@ -170,5 +170,4 @@ namespace CommandLine.Core
             return token.IsValue() && ((Value)token).Forced;
         }
     }
-
 }

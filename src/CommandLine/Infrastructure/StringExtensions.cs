@@ -3,9 +3,9 @@
 using System;
 using System.Globalization;
 using System.Text;
+
 namespace CommandLine.Infrastructure
 {
-
     internal static class StringExtensions
     {
         public static string ToOneCharString(this char c)
@@ -56,16 +56,19 @@ namespace CommandLine.Infrastructure
         public static string JoinTo(this string value, params string[] others)
         {
             StringBuilder builder = new StringBuilder(value);
+
             foreach (string v in others)
             {
                 builder.Append(v);
             }
+
             return builder.ToString();
         }
 
         public static bool IsBooleanString(this string value)
         {
-            return value.Equals("true", StringComparison.OrdinalIgnoreCase) || value.Equals("false", StringComparison.OrdinalIgnoreCase);
+            return value.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                   value.Equals("false", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool ToBoolean(this string value)
@@ -85,8 +88,8 @@ namespace CommandLine.Infrastructure
             {
                 return false;
             }
+
             return true;
         }
     }
-
 }

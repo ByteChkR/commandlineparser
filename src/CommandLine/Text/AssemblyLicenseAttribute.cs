@@ -2,9 +2,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+
 namespace CommandLine.Text
 {
-
     /// <summary>
     ///     Models a multiline assembly license text.
     /// </summary>
@@ -62,5 +62,4 @@ namespace CommandLine.Text
         public AssemblyLicenseAttribute(string line1, string line2, string line3, string line4, string line5)
             : base(line1, line2, line3, line4, line5) { }
     }
-
 }

@@ -3,9 +3,9 @@
 using System;
 
 using CommandLine.Infrastructure;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Models an option specification.
     /// </summary>
@@ -20,13 +20,14 @@ namespace CommandLine
             {
                 throw new ArgumentNullException("shortName");
             }
+
             if (longName == null)
             {
                 throw new ArgumentNullException("longName");
             }
 
-            this.ShortName = shortName;
-            this.LongName = longName;
+            ShortName = shortName;
+            LongName = longName;
             setName = string.Empty;
             Separator = '\0';
         }
@@ -106,5 +107,4 @@ namespace CommandLine
         /// </summary>
         public string Group { get; set; } = string.Empty;
     }
-
 }

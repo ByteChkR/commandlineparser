@@ -3,9 +3,9 @@
 using System;
 
 using CommandLine.Infrastructure;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Models a verb command specification.
     /// </summary>
@@ -58,6 +58,7 @@ namespace CommandLine
             get => helpText.Value ?? string.Empty;
             set => helpText.Value = value ?? throw new ArgumentNullException("value");
         }
+
         /// <summary>
         ///     Gets or sets the <see cref="System.Type" /> that contains the resources for <see cref="HelpText" />.
         /// </summary>
@@ -77,5 +78,4 @@ namespace CommandLine
         /// </summary>
         public string[] Aliases { get; private set; }
     }
-
 }

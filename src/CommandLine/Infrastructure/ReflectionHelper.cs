@@ -8,15 +8,16 @@ using System.Reflection;
 using CommandLine.Core;
 
 using CSharpx;
+
 namespace CommandLine.Infrastructure
 {
-
     internal static class ReflectionHelper
     {
         /// <summary>
         ///     Per thread assembly attribute overrides for testing.
         /// </summary>
-        [ThreadStatic] private static IDictionary<Type, Attribute> _overrides;
+        [ThreadStatic]
+        private static IDictionary<Type, Attribute> _overrides;
 
         /// <summary>
         ///     Assembly attribute overrides for testing.
@@ -48,7 +49,9 @@ namespace CommandLine.Infrastructure
             if (_overrides != null)
             {
                 return
-                    _overrides.ContainsKey(typeof(TAttribute)) ? Maybe.Just((TAttribute)_overrides[typeof(TAttribute)]) : Maybe.Nothing<TAttribute>();
+                    _overrides.ContainsKey(typeof(TAttribute))
+                        ? Maybe.Just((TAttribute)_overrides[typeof(TAttribute)])
+                        : Maybe.Nothing<TAttribute>();
             }
 
             Assembly assembly = GetExecutingOrEntryAssembly();
@@ -56,50 +59,60 @@ namespace CommandLine.Infrastructure
 #if NET40
             object[] attributes = assembly.GetCustomAttributes(typeof(TAttribute), false);
 #else
-            TAttribute[] attributes = assembly.GetCustomAttributes<TAttribute>().ToArray();
+            TAttribute[] attributes = assembly.GetCustomAttributes<TAttribute>()
+                                              .ToArray();
 #endif
 
             return attributes.Length > 0
-                ? Maybe.Just((TAttribute)attributes[0])
-                : Maybe.Nothing<TAttribute>();
+                       ? Maybe.Just(attributes[0])
+                       : Maybe.Nothing<TAttribute>();
         }
 
         public static string GetAssemblyName()
         {
             Assembly assembly = GetExecutingOrEntryAssembly();
-            return assembly.GetName().Name;
+
+            return assembly.GetName()
+                           .Name;
         }
 
         public static string GetAssemblyVersion()
         {
             Assembly assembly = GetExecutingOrEntryAssembly();
-            return assembly.GetName().Version.ToStringInvariant();
+
+            return assembly.GetName()
+                           .Version.ToStringInvariant();
         }
 
         public static bool IsFSharpOptionType(Type type)
         {
-            return type.FullName.StartsWith(
-                "Microsoft.FSharp.Core.FSharpOption`1",
-                StringComparison.Ordinal
-            );
+            return type.FullName.StartsWith("Microsoft.FSharp.Core.FSharpOption`1",
+                                            StringComparison.Ordinal
+                                           );
         }
 
         public static T CreateDefaultImmutableInstance<T>(Type[] constructorTypes)
         {
             Type t = typeof(T);
+
             return (T)CreateDefaultImmutableInstance(t, constructorTypes);
         }
 
         public static object CreateDefaultImmutableInstance(Type type, Type[] constructorTypes)
         {
-            ConstructorInfo ctor = type.GetTypeInfo().GetConstructor(constructorTypes);
+            ConstructorInfo ctor = type.GetTypeInfo()
+                                       .GetConstructor(constructorTypes);
+
             if (ctor == null)
             {
-                throw new InvalidOperationException($"Type {type.FullName} appears to be immutable, but no constructor found to accept values.");
+                throw new
+                    InvalidOperationException($"Type {type.FullName} appears to be immutable, but no constructor found to accept values."
+                                             );
             }
 
             object[] values = (from prms in ctor.GetParameters()
-                select prms.ParameterType.CreateDefaultForImmutable()).ToArray();
+                               select prms.ParameterType.CreateDefaultForImmutable()).ToArray();
+
             return ctor.Invoke(values);
         }
 
@@ -116,13 +129,15 @@ namespace CommandLine.Infrastructure
             {
                 return Enum.GetNames(t);
             }
+
             Type u = Nullable.GetUnderlyingType(t);
+
             if (u != null && u.IsEnum)
             {
                 return Enum.GetNames(u);
             }
+
             return Enumerable.Empty<string>();
         }
     }
-
 }

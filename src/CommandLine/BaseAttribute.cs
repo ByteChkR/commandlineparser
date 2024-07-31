@@ -3,9 +3,9 @@
 using System;
 
 using CommandLine.Infrastructure;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Models a base attribute to define command line syntax.
     /// </summary>
@@ -115,8 +115,7 @@ namespace CommandLine
         {
             get => resourceType;
             set => resourceType =
-                helpText.ResourceType = value;
+                       helpText.ResourceType = value;
         }
     }
-
 }

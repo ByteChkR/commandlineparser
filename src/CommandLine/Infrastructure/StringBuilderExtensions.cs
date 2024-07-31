@@ -2,9 +2,9 @@
 
 using System;
 using System.Text;
+
 namespace CommandLine.Infrastructure
 {
-
     internal static class StringBuilderExtensions
     {
         public static StringBuilder AppendWhen(this StringBuilder builder, bool condition, params string[] values)
@@ -33,37 +33,40 @@ namespace CommandLine.Infrastructure
             return builder;
         }
 
-        public static StringBuilder AppendFormatWhen(this StringBuilder builder, bool condition, string format, params object[] args)
+        public static StringBuilder AppendFormatWhen(this StringBuilder builder,
+                                                     bool condition,
+                                                     string format,
+                                                     params object[] args)
         {
             return condition
-                ? builder.AppendFormat(format, args)
-                : builder;
+                       ? builder.AppendFormat(format, args)
+                       : builder;
         }
 
         public static StringBuilder AppendIf(this StringBuilder builder, bool condition, string ifTrue, string ifFalse)
         {
             return condition
-                ? builder.Append(ifTrue)
-                : builder.Append(ifFalse);
+                       ? builder.Append(ifTrue)
+                       : builder.Append(ifFalse);
         }
 
         public static StringBuilder BimapIf(this StringBuilder builder,
-            bool condition,
-            Func<StringBuilder, StringBuilder> ifTrue,
-            Func<StringBuilder, StringBuilder> ifFalse)
+                                            bool condition,
+                                            Func<StringBuilder, StringBuilder> ifTrue,
+                                            Func<StringBuilder, StringBuilder> ifFalse)
         {
             return condition
-                ? ifTrue(builder)
-                : ifFalse(builder);
+                       ? ifTrue(builder)
+                       : ifFalse(builder);
         }
 
         public static StringBuilder MapIf(this StringBuilder builder,
-            bool condition,
-            Func<StringBuilder, StringBuilder> ifTrue)
+                                          bool condition,
+                                          Func<StringBuilder, StringBuilder> ifTrue)
         {
             return condition
-                ? ifTrue(builder)
-                : builder;
+                       ? ifTrue(builder)
+                       : builder;
         }
 
         public static StringBuilder AppendIfNotEmpty(this StringBuilder builder, params string[] values)
@@ -82,8 +85,8 @@ namespace CommandLine.Infrastructure
         public static string SafeToString(this StringBuilder builder)
         {
             return builder == null
-                ? string.Empty
-                : builder.ToString();
+                       ? string.Empty
+                       : builder.ToString();
         }
 
         public static int SafeLength(this StringBuilder builder)
@@ -94,8 +97,8 @@ namespace CommandLine.Infrastructure
         public static StringBuilder TrimEnd(this StringBuilder builder, char c)
         {
             return builder.Length > 0
-                ? builder.Remove(builder.Length - 1, 1)
-                : builder;
+                       ? builder.Remove(builder.Length - 1, 1)
+                       : builder;
         }
 
         public static StringBuilder TrimEndIfMatch(this StringBuilder builder, char c)
@@ -114,34 +117,41 @@ namespace CommandLine.Infrastructure
         public static StringBuilder TrimEndIfMatchWhen(this StringBuilder builder, bool condition, char c)
         {
             return condition
-                ? builder.TrimEndIfMatch(c)
-                : builder;
+                       ? builder.TrimEndIfMatch(c)
+                       : builder;
         }
 
         public static int TrailingSpaces(this StringBuilder builder)
         {
             int bound = builder.Length - 1;
+
             if (builder.Length == 0)
             {
                 return 0;
             }
+
             if (builder[bound] != ' ')
             {
                 return 0;
             }
+
             int c = 0;
+
             for (int i = bound; i <= bound; i--)
             {
                 if (i < 0)
                 {
                     break;
                 }
+
                 if (builder[i] != ' ')
                 {
                     break;
                 }
+
                 c++;
             }
+
             return c;
         }
 
@@ -181,5 +191,4 @@ namespace CommandLine.Infrastructure
             return builder?.Length >= s.Length && builder.ToString(builder.Length - s.Length, s.Length) == s;
         }
     }
-
 }

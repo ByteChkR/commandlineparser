@@ -2,10 +2,10 @@
 //#define CSX_REM_MAYBE_FUNC // Uncomment or define at build time to remove dependency to Maybe.cs.
 
 using System;
+
 namespace CSharpx
 {
-
-    #region Either Type
+#region Either Type
 
 #if !CSX_EITHER_INTERNAL
     public
@@ -16,6 +16,7 @@ namespace CSharpx
         ///     Failed computation case.
         /// </summary>
         Left,
+
         /// <summary>
         ///     Sccessful computation case.
         /// </summary>
@@ -27,30 +28,30 @@ namespace CSharpx
 #endif
     internal abstract class Either<TLeft, TRight>
     {
-
         protected Either(EitherType tag)
         {
-            this.Tag = tag;
+            Tag = tag;
         }
 
         public EitherType Tag { get; }
 
-        #region Basic Match Methods
+#region Basic Match Methods
 
         public bool MatchLeft(out TLeft value)
         {
             value = Tag == EitherType.Left ? ((Left<TLeft, TRight>)this).Value : default;
+
             return Tag == EitherType.Left;
         }
 
         public bool MatchRight(out TRight value)
         {
             value = Tag == EitherType.Right ? ((Right<TLeft, TRight>)this).Value : default;
+
             return Tag == EitherType.Right;
         }
 
-        #endregion
-
+#endregion
     }
 
 #if !CSX_EITHER_INTERNAL
@@ -58,11 +59,10 @@ namespace CSharpx
 #endif
     internal sealed class Left<TLeft, TRight> : Either<TLeft, TRight>
     {
-
         internal Left(TLeft value)
             : base(EitherType.Left)
         {
-            this.Value = value;
+            Value = value;
         }
 
         public TLeft Value { get; }
@@ -73,58 +73,65 @@ namespace CSharpx
 #endif
     internal sealed class Right<TLeft, TRight> : Either<TLeft, TRight>
     {
-
         internal Right(TRight value)
             : base(EitherType.Right)
         {
-            this.Value = value;
+            Value = value;
         }
 
         public TRight Value { get; }
     }
 
-    #endregion
+#endregion
 
 #if !CSX_EITHER_INTERNAL
     public
 #endif
     internal static class Either
     {
-
-        #region Functor
+#region Functor
 
         /// <summary>
         ///     Transforms a Either's right value by using a specified mapping function.
         /// </summary>
-        public static Either<TLeft, TResult> Map<TLeft, TRight, TResult>(Either<TLeft, TRight> either, Func<TRight, TResult> func)
+        public static Either<TLeft, TResult> Map<TLeft, TRight, TResult>(
+            Either<TLeft, TRight> either,
+            Func<TRight, TResult> func)
         {
             TRight right;
+
             if (either.MatchRight(out right))
             {
                 return Right<TLeft, TResult>(func(right));
             }
+
             return Left<TLeft, TResult>(either.GetLeft());
         }
 
-        #endregion
+#endregion
 
-        #region Bifunctor
+#region Bifunctor
 
         /// <summary>
         ///     Maps both parts of a Either type. Applies the first function if Either is Left.
         ///     Otherwise applies the second function.
         /// </summary>
-        public static Either<TLeft1, TRight1> Bimap<TLeft, TRight, TLeft1, TRight1>(Either<TLeft, TRight> either, Func<TLeft, TLeft1> mapLeft, Func<TRight, TRight1> mapRight)
+        public static Either<TLeft1, TRight1> Bimap<TLeft, TRight, TLeft1, TRight1>(
+            Either<TLeft, TRight> either,
+            Func<TLeft, TLeft1> mapLeft,
+            Func<TRight, TRight1> mapRight)
         {
             TRight right;
+
             if (either.MatchRight(out right))
             {
                 return Right<TLeft1, TRight1>(mapRight(right));
             }
+
             return Left<TLeft1, TRight1>(mapLeft(either.GetLeft()));
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         ///     Returns a Either Right or fail with an exception.
@@ -132,10 +139,12 @@ namespace CSharpx
         public static TRight GetOrFail<TLeft, TRight>(Either<TLeft, TRight> either)
         {
             TRight value;
+
             if (either.MatchRight(out value))
             {
                 return value;
             }
+
             throw new ArgumentException(nameof(either), string.Format("The either value was Left {0}", either));
         }
 
@@ -145,6 +154,7 @@ namespace CSharpx
         public static TLeft GetLeftOrDefault<TLeft, TRight>(Either<TLeft, TRight> either, TLeft @default)
         {
             TLeft value;
+
             return either.MatchLeft(out value) ? value : @default;
         }
 
@@ -154,6 +164,7 @@ namespace CSharpx
         public static TRight GetRightOrDefault<TLeft, TRight>(Either<TLeft, TRight> either, TRight @default)
         {
             TRight value;
+
             return either.MatchRight(out value) ? value : @default;
         }
 
@@ -188,6 +199,7 @@ namespace CSharpx
             {
                 return Right<TLeft, TRight>(((Just<TRight>)maybe).Value);
             }
+
             return Left<TLeft, TRight>(left);
         }
 #endif
@@ -197,7 +209,7 @@ namespace CSharpx
             return ((Left<TLeft, TRight>)either).Value;
         }
 
-        #region Value Case Constructors
+#region Value Case Constructors
 
         public static Either<TLeft, TRight> Left<TLeft, TRight>(TLeft value)
         {
@@ -209,9 +221,9 @@ namespace CSharpx
             return new Right<TLeft, TRight>(value);
         }
 
-        #endregion
+#endregion
 
-        #region Monad
+#region Monad
 
         /// <summary>
         ///     Inject a value into the Either type, returning Right case.
@@ -232,26 +244,29 @@ namespace CSharpx
         /// <summary>
         ///     Monadic bind.
         /// </summary>
-        public static Either<TLeft, TResult> Bind<TLeft, TRight, TResult>(Either<TLeft, TRight> either, Func<TRight, Either<TLeft, TResult>> func)
+        public static Either<TLeft, TResult> Bind<TLeft, TRight, TResult>(
+            Either<TLeft, TRight> either,
+            Func<TRight, Either<TLeft, TResult>> func)
         {
             TRight right;
+
             if (either.MatchRight(out right))
             {
                 return func(right);
             }
+
             return Left<TLeft, TResult>(either.GetLeft());
         }
 
-        #endregion
+#endregion
 
-        #region Linq Operators
+#region Linq Operators
 
         /// <summary>
         ///     Map operation compatible with Linq.
         /// </summary>
-        public static Either<TLeft, TResult> Select<TLeft, TRight, TResult>(
-            this Either<TLeft, TRight> either,
-            Func<TRight, TResult> selector)
+        public static Either<TLeft, TResult> Select<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
+                                                                            Func<TRight, TResult> selector)
         {
             return Map(either, selector);
         }
@@ -262,8 +277,7 @@ namespace CSharpx
             return Bind(result, func);
         }
 
-        #endregion
-
+#endregion
     }
 
 #if !CSX_EITHER_INTERNAL
@@ -271,21 +285,25 @@ namespace CSharpx
 #endif
     internal static class EitherExtensions
     {
+#region Alternative Match Methods
 
-        #region Alternative Match Methods
-
-        public static void Match<TLeft, TRight>(this Either<TLeft, TRight> either, Action<TLeft> ifLeft, Action<TRight> ifRight)
+        public static void Match<TLeft, TRight>(this Either<TLeft, TRight> either,
+                                                Action<TLeft> ifLeft,
+                                                Action<TRight> ifRight)
         {
             TLeft left;
+
             if (either.MatchLeft(out left))
             {
                 ifLeft(left);
+
                 return;
             }
+
             ifRight(((Right<TLeft, TRight>)either).Value);
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         ///     Equivalent to monadic <see cref="CSharpx.Either.Return{TRight}" /> operation.
@@ -296,22 +314,19 @@ namespace CSharpx
             return Either.Return(value);
         }
 
-        public static Either<TLeft, TResult> Bind<TLeft, TRight, TResult>(
-            this Either<TLeft, TRight> either,
-            Func<TRight, Either<TLeft, TResult>> func)
+        public static Either<TLeft, TResult> Bind<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
+                                                                          Func<TRight, Either<TLeft, TResult>> func)
         {
             return Either.Bind(either, func);
         }
 
-        public static Either<TLeft, TResult> Map<TLeft, TRight, TResult>(
-            this Either<TLeft, TRight> either,
-            Func<TRight, TResult> func)
+        public static Either<TLeft, TResult> Map<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
+                                                                         Func<TRight, TResult> func)
         {
             return Either.Map(either, func);
         }
 
-        public static Either<TLeft1, TRight1> Bimap<TLeft, TRight, TLeft1, TRight1>(
-            this Either<TLeft, TRight> either,
+        public static Either<TLeft1, TRight1> Bimap<TLeft, TRight, TLeft1, TRight1>(this Either<TLeft, TRight> either,
             Func<TLeft, TLeft1> mapLeft,
             Func<TRight, TRight1> mapRight)
         {
@@ -328,5 +343,4 @@ namespace CSharpx
             return either.Tag == EitherType.Right;
         }
     }
-
 }

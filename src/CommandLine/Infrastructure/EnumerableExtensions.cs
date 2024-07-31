@@ -3,29 +3,35 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace CommandLine.Infrastructure
 {
-
     internal static class EnumerableExtensions
     {
         public static int IndexOf<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
             int index = -1;
+
             foreach (TSource item in source)
             {
                 index++;
+
                 if (predicate(item))
                 {
                     break;
                 }
             }
+
             return index;
         }
 
         public static object ToUntypedArray(this IEnumerable<object> value, Type type)
         {
             Array array = Array.CreateInstance(type, value.Count());
-            value.ToArray().CopyTo(array, 0);
+
+            value.ToArray()
+                 .CopyTo(array, 0);
+
             return array;
         }
 
@@ -37,7 +43,8 @@ namespace CommandLine.Infrastructure
         /// <summary>
         ///     Breaks a collection into groups of a specified size.
         /// </summary>
-        /// <param name="source">A collection of
+        /// <param name="source">
+        ///     A collection of
         ///     <typeparam name="T" />
         ///     .
         /// </param>
@@ -68,5 +75,4 @@ namespace CommandLine.Infrastructure
             }
         }
     }
-
 }

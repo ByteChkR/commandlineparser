@@ -3,17 +3,16 @@
 using System;
 
 using CSharpx;
+
 namespace CommandLine.Core
 {
-
     internal struct TypeDescriptor
     {
-
         private TypeDescriptor(TargetType targetType, Maybe<int> maxItems, Maybe<TypeDescriptor> nextValue = null)
         {
-            this.TargetType = targetType;
-            this.MaxItems = maxItems;
-            this.NextValue = nextValue;
+            TargetType = targetType;
+            MaxItems = maxItems;
+            NextValue = nextValue;
         }
 
         public TargetType TargetType { get; }
@@ -37,8 +36,10 @@ namespace CommandLine.Core
     {
         public static TypeDescriptor WithNextValue(this TypeDescriptor descriptor, Maybe<TypeDescriptor> nextValue)
         {
-            return TypeDescriptor.Create(descriptor.TargetType, descriptor.MaxItems, nextValue.GetValueOrDefault(default));
+            return TypeDescriptor.Create(descriptor.TargetType,
+                                         descriptor.MaxItems,
+                                         nextValue.GetValueOrDefault(default)
+                                        );
         }
     }
-
 }

@@ -6,16 +6,15 @@ using System.Linq;
 using System.Text;
 
 using CommandLine.Infrastructure;
+
 namespace CommandLine.Text
 {
-
     /// <summary>
     ///     Exposes standard delegates to provide a mean to customize part of help screen generation.
     ///     This type is consumed by <see cref="CommandLine.Text.HelpText" />.
     /// </summary>
     public abstract class SentenceBuilder
     {
-
         /// <summary>
         ///     Factory to allow custom SentenceBuilder injection
         /// </summary>
@@ -72,6 +71,7 @@ namespace CommandLine.Text
         ///     The delegates must accept a sequence of <see cref="MutuallyExclusiveSetError" /> and returns a string.
         /// </summary>
         public abstract Func<IEnumerable<MutuallyExclusiveSetError>, string> FormatMutuallyExclusiveSetErrors { get; }
+
         /// <summary>
         ///     Create instance of <see cref="CommandLine.Text.SentenceBuilder" />,
         /// </summary>
@@ -80,6 +80,8 @@ namespace CommandLine.Text
         {
             return Factory();
         }
+
+#region Nested type: DefaultSentenceBuilder
 
         private class DefaultSentenceBuilder : SentenceBuilder
         {
@@ -108,8 +110,8 @@ namespace CommandLine.Text
                 get
                 {
                     return isOption => isOption
-                        ? "Display this help screen."
-                        : "Display more information on a specific command.";
+                                           ? "Display this help screen."
+                                           : "Display more information on a specific command.";
                 }
             }
 
@@ -129,56 +131,65 @@ namespace CommandLine.Text
                             case ErrorType.BadFormatTokenError:
                                 return "Token '".JoinTo(((BadFormatTokenError)error).Token, "' is not recognized.");
                             case ErrorType.MissingValueOptionError:
-                                return "Option '".JoinTo(
-                                    ((MissingValueOptionError)error).NameInfo.NameText,
-                                    "' has no value."
-                                );
+                                return "Option '".JoinTo(((MissingValueOptionError)error).NameInfo.NameText,
+                                                         "' has no value."
+                                                        );
                             case ErrorType.UnknownOptionError:
                                 return "Option '".JoinTo(((UnknownOptionError)error).Token, "' is unknown.");
                             case ErrorType.MissingRequiredOptionError:
                                 MissingRequiredOptionError errMisssing = (MissingRequiredOptionError)error;
+
                                 return errMisssing.NameInfo.Equals(NameInfo.EmptyName)
-                                    ? "A required value not bound to option name is missing."
-                                    : "Required option '".JoinTo(errMisssing.NameInfo.NameText, "' is missing.");
+                                           ? "A required value not bound to option name is missing."
+                                           : "Required option '".JoinTo(errMisssing.NameInfo.NameText, "' is missing.");
                             case ErrorType.BadFormatConversionError:
                                 BadFormatConversionError badFormat = (BadFormatConversionError)error;
+
                                 return badFormat.NameInfo.Equals(NameInfo.EmptyName)
-                                    ? "A value not bound to option name is defined with a bad format."
-                                    : "Option '".JoinTo(badFormat.NameInfo.NameText, "' is defined with a bad format.");
+                                           ? "A value not bound to option name is defined with a bad format."
+                                           : "Option '".JoinTo(badFormat.NameInfo.NameText,
+                                                               "' is defined with a bad format."
+                                                              );
                             case ErrorType.SequenceOutOfRangeError:
                                 SequenceOutOfRangeError seqOutRange = (SequenceOutOfRangeError)error;
+
                                 return seqOutRange.NameInfo.Equals(NameInfo.EmptyName)
-                                    ? "A sequence value not bound to option name is defined with fewer items than required."
-                                    : "A sequence option '".JoinTo(
-                                        seqOutRange.NameInfo.NameText,
-                                        "' is defined with fewer or more items than required."
-                                    );
+                                           ? "A sequence value not bound to option name is defined with fewer items than required."
+                                           : "A sequence option '".JoinTo(seqOutRange.NameInfo.NameText,
+                                                                          "' is defined with fewer or more items than required."
+                                                                         );
                             case ErrorType.BadVerbSelectedError:
                                 return "Verb '".JoinTo(((BadVerbSelectedError)error).Token, "' is not recognized.");
                             case ErrorType.NoVerbSelectedError:
                                 return "No verb selected.";
                             case ErrorType.RepeatedOptionError:
-                                return "Option '".JoinTo(
-                                    ((RepeatedOptionError)error).NameInfo.NameText,
-                                    "' is defined multiple times."
-                                );
+                                return "Option '".JoinTo(((RepeatedOptionError)error).NameInfo.NameText,
+                                                         "' is defined multiple times."
+                                                        );
                             case ErrorType.SetValueExceptionError:
                                 SetValueExceptionError setValueError = (SetValueExceptionError)error;
-                                return "Error setting value to option '".JoinTo(setValueError.NameInfo.NameText, "': ", setValueError.Exception.Message);
+
+                                return "Error setting value to option '".JoinTo(setValueError.NameInfo.NameText,
+                                                                                "': ",
+                                                                                setValueError.Exception.Message
+                                                                               );
                             case ErrorType.MissingGroupOptionError:
                                 MissingGroupOptionError missingGroupOptionError = (MissingGroupOptionError)error;
-                                return "At least one option from group '".JoinTo(
-                                    missingGroupOptionError.Group,
-                                    "' (",
-                                    string.Join(", ", missingGroupOptionError.Names.Select(n => n.NameText)),
-                                    ") is required."
-                                );
+
+                                return "At least one option from group '".JoinTo(missingGroupOptionError.Group,
+                                     "' (",
+                                     string.Join(", ", missingGroupOptionError.Names.Select(n => n.NameText)),
+                                     ") is required."
+                                    );
                             case ErrorType.GroupOptionAmbiguityError:
                                 GroupOptionAmbiguityError groupOptionAmbiguityError = (GroupOptionAmbiguityError)error;
-                                return "Both SetName and Group are not allowed in option: (".JoinTo(groupOptionAmbiguityError.Option.NameText, ")");
+
+                                return "Both SetName and Group are not allowed in option: ("
+                                    .JoinTo(groupOptionAmbiguityError.Option.NameText, ")");
                             case ErrorType.MultipleDefaultVerbsError:
                                 return MultipleDefaultVerbsError.ErrorMessage;
                         }
+
                         throw new InvalidOperationException();
                     };
                 }
@@ -191,49 +202,60 @@ namespace CommandLine.Text
                     return errors =>
                     {
                         var bySet = from e in errors
-                            group e by e.SetName
-                            into g
-                            select new
-                            {
-                                SetName = g.Key,
-                                Errors = g.ToList(),
-                            };
+                                    group e by e.SetName
+                                    into g
+                                    select new { SetName = g.Key, Errors = g.ToList() };
 
-                        string[] msgs = bySet.Select(
-                            set =>
-                            {
-                                string names = string.Join(
-                                    string.Empty,
-                                    (from e in set.Errors select "'".JoinTo(e.NameInfo.NameText, "', ")).ToArray()
-                                );
-                                int namesCount = set.Errors.Count();
+                        string[] msgs = bySet.Select(set =>
+                                                     {
+                                                         string names = string.Join(string.Empty,
+                                                              (from e in set.Errors
+                                                               select "'".JoinTo(e.NameInfo.NameText,
+                                                                    "', "
+                                                                   )).ToArray()
+                                                             );
+                                                         int namesCount = set.Errors.Count();
 
-                                string incompat = string.Join(
-                                    string.Empty,
-                                    (from x in
-                                            (from s in bySet where !s.SetName.Equals(set.SetName) from e in s.Errors select e)
-                                            .Distinct()
-                                        select "'".JoinTo(x.NameInfo.NameText, "', ")).ToArray()
-                                );
+                                                         string incompat = string.Join(string.Empty,
+                                                              (from x in
+                                                                   (from s in bySet
+                                                                    where
+                                                                        !s
+                                                                         .SetName
+                                                                         .Equals(set
+                                                                                 .SetName
+                                                                             )
+                                                                    from e in s
+                                                                        .Errors
+                                                                    select e)
+                                                                   .Distinct()
+                                                               select "'".JoinTo(x.NameInfo
+                                                                        .NameText,
+                                                                    "', "
+                                                                   )).ToArray()
+                                                             );
 
-                                return
-                                    new StringBuilder("Option")
-                                        .AppendWhen(namesCount > 1, "s")
-                                        .Append(": ")
-                                        .Append(names.Substring(0, names.Length - 2))
-                                        .Append(' ')
-                                        .AppendIf(namesCount > 1, "are", "is")
-                                        .Append(" not compatible with: ")
-                                        .Append(incompat.Substring(0, incompat.Length - 2))
-                                        .Append('.')
-                                        .ToString();
-                            }
-                        ).ToArray();
+                                                         return
+                                                             new StringBuilder("Option")
+                                                                 .AppendWhen(namesCount > 1, "s")
+                                                                 .Append(": ")
+                                                                 .Append(names.Substring(0, names.Length - 2))
+                                                                 .Append(' ')
+                                                                 .AppendIf(namesCount > 1, "are", "is")
+                                                                 .Append(" not compatible with: ")
+                                                                 .Append(incompat.Substring(0, incompat.Length - 2))
+                                                                 .Append('.')
+                                                                 .ToString();
+                                                     }
+                                                    )
+                                             .ToArray();
+
                         return string.Join(Environment.NewLine, msgs);
                     };
                 }
             }
         }
-    }
 
+#endregion
+    }
 }

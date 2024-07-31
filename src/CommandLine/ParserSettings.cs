@@ -7,15 +7,14 @@ using System.IO;
 using CommandLine.Infrastructure;
 
 using CSharpx;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Provides settings for <see cref="CommandLine.Parser" />. Once consumed cannot be reused.
     /// </summary>
     public class ParserSettings : IDisposable
     {
-
         public const int DefaultMaximumLength = 80; // default console width
         private Maybe<bool> allowMultiInstance;
         private bool autoHelp;
@@ -185,16 +184,20 @@ namespace CommandLine
         /// </summary>
         public bool PosixlyCorrect
         {
-            get => posixlyCorrect.MapValueOrDefault(val => val, () => Environment.GetEnvironmentVariable("POSIXLY_CORRECT").ToBooleanLoose());
+            get => posixlyCorrect.MapValueOrDefault(val => val,
+                                                    () => Environment.GetEnvironmentVariable("POSIXLY_CORRECT")
+                                                                     .ToBooleanLoose()
+                                                   );
             set => PopsicleSetter.Set(Consumed, ref posixlyCorrect, Maybe.Just(value));
         }
 
-        internal StringComparer NameComparer =>
-            CaseSensitive
-                ? StringComparer.Ordinal
-                : StringComparer.OrdinalIgnoreCase;
+        internal StringComparer NameComparer => CaseSensitive
+                                                    ? StringComparer.Ordinal
+                                                    : StringComparer.OrdinalIgnoreCase;
 
         internal bool Consumed { get; set; }
+
+#region IDisposable Members
 
         /// <summary>
         ///     Frees resources owned by the instance.
@@ -205,6 +208,9 @@ namespace CommandLine
 
             GC.SuppressFinalize(this);
         }
+
+#endregion
+
         public static ParserSettings CreateDefault(int? maxDisplayWidth = null)
         {
             return new ParserSettings(maxDisplayWidth);
@@ -219,18 +225,23 @@ namespace CommandLine
             }
 #endif
             int width = 1;
+
             try
             {
                 width = Console.WindowWidth;
+
                 if (width < 1)
                 {
                     width = DefaultMaximumLength;
                 }
             }
-            catch (Exception e) when (e is IOException || e is PlatformNotSupportedException || e is ArgumentOutOfRangeException)
+            catch (Exception e) when (e is IOException ||
+                                      e is PlatformNotSupportedException ||
+                                      e is ArgumentOutOfRangeException)
             {
                 width = DefaultMaximumLength;
             }
+
             return width;
         }
 
@@ -257,5 +268,4 @@ namespace CommandLine
             }
         }
     }
-
 }

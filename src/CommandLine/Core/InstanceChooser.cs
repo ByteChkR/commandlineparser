@@ -8,9 +8,9 @@ using System.Linq;
 using CSharpx;
 
 using RailwaySharp.ErrorHandling;
+
 namespace CommandLine.Core
 {
-
     internal static class InstanceChooser
     {
         public static ParserResult<object> Choose(
@@ -24,18 +24,17 @@ namespace CommandLine.Core
             bool autoVersion,
             IEnumerable<ErrorType> nonFatalErrors)
         {
-            return Choose(
-                tokenizer,
-                types,
-                arguments,
-                nameComparer,
-                ignoreValueCase,
-                parsingCulture,
-                autoHelp,
-                autoVersion,
-                false,
-                nonFatalErrors
-            );
+            return Choose(tokenizer,
+                          types,
+                          arguments,
+                          nameComparer,
+                          ignoreValueCase,
+                          parsingCulture,
+                          autoHelp,
+                          autoVersion,
+                          false,
+                          nonFatalErrors
+                         );
         }
 
         public static ParserResult<object> Choose(
@@ -54,6 +53,7 @@ namespace CommandLine.Core
             IEnumerable<Tuple<Verb, Type>> defaultVerbs = verbs.Where(t => t.Item1.IsDefault);
 
             int defaultVerbCount = defaultVerbs.Count();
+
             if (defaultVerbCount > 1)
             {
                 return MakeNotParsed(types, new MultipleDefaultVerbsError());
@@ -71,32 +71,42 @@ namespace CommandLine.Core
                            nameComparer.Equals(string.Concat("--", command), firstArg);
                 }
 
-                return autoHelp && preprocCompare("help") ? MakeNotParsed(
-                        types,
-                        MakeHelpVerbRequestedError(
-                            verbs,
-                            arguments.Skip(1).FirstOrDefault() ?? string.Empty,
-                            nameComparer
-                        )
-                    ) :
-                    autoVersion && preprocCompare("version") ? MakeNotParsed(types, new VersionRequestedError()) : MatchVerb(
-                        tokenizer,
-                        verbs,
-                        defaultVerb,
-                        arguments,
-                        nameComparer,
-                        ignoreValueCase,
-                        parsingCulture,
-                        autoHelp,
-                        autoVersion,
-                        allowMultiInstance,
-                        nonFatalErrors
-                    );
+                return autoHelp && preprocCompare("help") ? MakeNotParsed(types,
+                                                                          MakeHelpVerbRequestedError(verbs,
+                                                                               arguments.Skip(1)
+                                                                                   .FirstOrDefault() ??
+                                                                               string.Empty,
+                                                                               nameComparer
+                                                                              )
+                                                                         ) :
+                       autoVersion && preprocCompare("version") ? MakeNotParsed(types, new VersionRequestedError()) :
+                       MatchVerb(tokenizer,
+                                 verbs,
+                                 defaultVerb,
+                                 arguments,
+                                 nameComparer,
+                                 ignoreValueCase,
+                                 parsingCulture,
+                                 autoHelp,
+                                 autoVersion,
+                                 allowMultiInstance,
+                                 nonFatalErrors
+                                );
             }
 
             return arguments.Any() ? choose() :
-                defaultVerbCount == 1 ? MatchDefaultVerb(tokenizer, verbs, defaultVerb, arguments, nameComparer, ignoreValueCase, parsingCulture, autoHelp, autoVersion, nonFatalErrors) :
-                MakeNotParsed(types, new NoVerbSelectedError());
+                   defaultVerbCount == 1 ? MatchDefaultVerb(tokenizer,
+                                                            verbs,
+                                                            defaultVerb,
+                                                            arguments,
+                                                            nameComparer,
+                                                            ignoreValueCase,
+                                                            parsingCulture,
+                                                            autoHelp,
+                                                            autoVersion,
+                                                            nonFatalErrors
+                                                           ) :
+                   MakeNotParsed(types, new NoVerbSelectedError());
         }
 
         private static ParserResult<object> MatchDefaultVerb(
@@ -112,18 +122,17 @@ namespace CommandLine.Core
             IEnumerable<ErrorType> nonFatalErrors)
         {
             return !(defaultVerb is null)
-                ? InstanceBuilder.Build(
-                    Maybe.Just<Func<object>>(() => defaultVerb.Item2.AutoDefault()),
-                    tokenizer,
-                    arguments,
-                    nameComparer,
-                    ignoreValueCase,
-                    parsingCulture,
-                    autoHelp,
-                    autoVersion,
-                    nonFatalErrors
-                )
-                : MakeNotParsed(verbs.Select(v => v.Item2), new BadVerbSelectedError(arguments.First()));
+                       ? InstanceBuilder.Build(Maybe.Just<Func<object>>(() => defaultVerb.Item2.AutoDefault()),
+                                               tokenizer,
+                                               arguments,
+                                               nameComparer,
+                                               ignoreValueCase,
+                                               parsingCulture,
+                                               autoHelp,
+                                               autoVersion,
+                                               nonFatalErrors
+                                              )
+                       : MakeNotParsed(verbs.Select(v => v.Item2), new BadVerbSelectedError(arguments.First()));
         }
 
         private static ParserResult<object> MatchVerb(
@@ -141,44 +150,52 @@ namespace CommandLine.Core
         {
             string firstArg = arguments.First();
 
-            Tuple<Verb, Type> verbUsed = verbs.FirstOrDefault(
-                vt =>
-                    nameComparer.Equals(vt.Item1.Name, firstArg) || vt.Item1.Aliases.Any(alias => nameComparer.Equals(alias, firstArg))
-            );
+            Tuple<Verb, Type> verbUsed = verbs.FirstOrDefault(vt =>
+                                                                  nameComparer.Equals(vt.Item1.Name, firstArg) ||
+                                                                  vt.Item1.Aliases.Any(alias =>
+                                                                          nameComparer.Equals(alias, firstArg)
+                                                                      )
+                                                             );
 
             if (verbUsed == default)
             {
-                return MatchDefaultVerb(tokenizer, verbs, defaultVerb, arguments, nameComparer, ignoreValueCase, parsingCulture, autoHelp, autoVersion, nonFatalErrors);
+                return MatchDefaultVerb(tokenizer,
+                                        verbs,
+                                        defaultVerb,
+                                        arguments,
+                                        nameComparer,
+                                        ignoreValueCase,
+                                        parsingCulture,
+                                        autoHelp,
+                                        autoVersion,
+                                        nonFatalErrors
+                                       );
             }
-            return InstanceBuilder.Build(
-                Maybe.Just<Func<object>>(
-                    () => verbUsed.Item2.AutoDefault()
-                ),
-                tokenizer,
-                arguments.Skip(1),
-                nameComparer,
-                ignoreValueCase,
-                parsingCulture,
-                autoHelp,
-                autoVersion,
-                allowMultiInstance,
-                nonFatalErrors
-            );
+
+            return InstanceBuilder.Build(Maybe.Just<Func<object>>(() => verbUsed.Item2.AutoDefault()),
+                                         tokenizer,
+                                         arguments.Skip(1),
+                                         nameComparer,
+                                         ignoreValueCase,
+                                         parsingCulture,
+                                         autoHelp,
+                                         autoVersion,
+                                         allowMultiInstance,
+                                         nonFatalErrors
+                                        );
         }
 
-        private static HelpVerbRequestedError MakeHelpVerbRequestedError(
-            IEnumerable<Tuple<Verb, Type>> verbs,
-            string verb,
-            StringComparer nameComparer)
+        private static HelpVerbRequestedError MakeHelpVerbRequestedError(IEnumerable<Tuple<Verb, Type>> verbs,
+                                                                         string verb,
+                                                                         StringComparer nameComparer)
         {
             return verb.Length > 0
-                ? verbs.SingleOrDefault(v => nameComparer.Equals(v.Item1.Name, verb))
-                    .ToMaybe()
-                    .MapValueOrDefault(
-                        v => new HelpVerbRequestedError(v.Item1.Name, v.Item2, true),
-                        new HelpVerbRequestedError(null, null, false)
-                    )
-                : new HelpVerbRequestedError(null, null, false);
+                       ? verbs.SingleOrDefault(v => nameComparer.Equals(v.Item1.Name, verb))
+                              .ToMaybe()
+                              .MapValueOrDefault(v => new HelpVerbRequestedError(v.Item1.Name, v.Item2, true),
+                                                 new HelpVerbRequestedError(null, null, false)
+                                                )
+                       : new HelpVerbRequestedError(null, null, false);
         }
 
         private static NotParsed<object> MakeNotParsed(IEnumerable<Type> types, params Error[] errors)
@@ -186,5 +203,4 @@ namespace CommandLine.Core
             return new NotParsed<object>(TypeInfo.Create(typeof(NullInstance), types), errors);
         }
     }
-
 }

@@ -3,12 +3,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+
 namespace CommandLine.Infrastructure
 {
-
     internal sealed class ReferenceEqualityComparer : IEqualityComparer, IEqualityComparer<object>
     {
         public static readonly ReferenceEqualityComparer Default = new ReferenceEqualityComparer();
+
+#region IEqualityComparer Members
 
         public new bool Equals(object x, object y)
         {
@@ -19,6 +21,7 @@ namespace CommandLine.Infrastructure
         {
             return RuntimeHelpers.GetHashCode(obj);
         }
-    }
 
+#endregion
+    }
 }

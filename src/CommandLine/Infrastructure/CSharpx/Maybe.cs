@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace CSharpx
 {
-
-    #region Maybe Type
+#region Maybe Type
 
     /// <summary>
     ///     Discriminator for <see cref="CSharpx.Maybe" />.
@@ -31,10 +31,9 @@ namespace CSharpx
 #endif
     internal abstract class Maybe<T>
     {
-
         protected Maybe(MaybeType tag)
         {
-            this.Tag = tag;
+            Tag = tag;
         }
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace CSharpx
         /// </summary>
         public MaybeType Tag { get; }
 
-        #region Basic Match Methods
+#region Basic Match Methods
 
         /// <summary>
         ///     Matches a value returning <c>true</c> and value itself via output parameter.
@@ -50,6 +49,7 @@ namespace CSharpx
         public bool MatchJust(out T value)
         {
             value = Tag == MaybeType.Just ? ((Just<T>)this).Value : default;
+
             return Tag == MaybeType.Just;
         }
 
@@ -61,11 +61,10 @@ namespace CSharpx
             return Tag == MaybeType.Nothing;
         }
 
-        #endregion
-
+#endregion
     }
 
-    #endregion
+#endregion
 
     /// <summary>
     ///     Models a <see cref="CSharpx.Maybe" /> when in empty state.
@@ -87,11 +86,10 @@ namespace CSharpx
 #endif
     internal sealed class Just<T> : Maybe<T>
     {
-
         internal Just(T value)
             : base(MaybeType.Just)
         {
-            this.Value = value;
+            Value = value;
         }
 
         /// <summary>
@@ -108,8 +106,7 @@ namespace CSharpx
 #endif
     internal static class Maybe
     {
-
-        #region Value Case Constructors
+#region Value Case Constructors
 
         /// <summary>
         ///     Builds the empty case of <see cref="CSharpx.Maybe" />.
@@ -127,9 +124,9 @@ namespace CSharpx
             return new Just<T>(value);
         }
 
-        #endregion
+#endregion
 
-        #region Monad
+#region Monad
 
         /// <summary>
         ///     Inject a value into the monadic <see cref="CSharpx.Maybe{T}" /> type.
@@ -145,12 +142,13 @@ namespace CSharpx
         public static Maybe<T2> Bind<T1, T2>(Maybe<T1> maybe, Func<T1, Maybe<T2>> func)
         {
             T1 value1;
+
             return maybe.MatchJust(out value1) ? func(value1) : Nothing<T2>();
         }
 
-        #endregion
+#endregion
 
-        #region Functor
+#region Functor
 
         /// <summary>
         ///     Transforms an maybe value by using a specified mapping function.
@@ -158,10 +156,11 @@ namespace CSharpx
         public static Maybe<T2> Map<T1, T2>(Maybe<T1> maybe, Func<T1, T2> func)
         {
             T1 value1;
+
             return maybe.MatchJust(out value1) ? Just(func(value1)) : Nothing<T2>();
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         ///     If both maybes contain a value, it merges them into a maybe with a tupled value.
@@ -170,10 +169,12 @@ namespace CSharpx
         {
             T1 value1;
             T2 value2;
+
             if (first.MatchJust(out value1) && second.MatchJust(out value2))
             {
                 return Just(Tuple.Create(value1, value2));
             }
+
             return Nothing<Tuple<T1, T2>>();
         }
 
@@ -199,8 +200,7 @@ namespace CSharpx
 #endif
     internal static class MaybeExtensions
     {
-
-        #region Alternative Match Methods
+#region Alternative Match Methods
 
         /// <summary>
         ///     Provides pattern matching using <see cref="System.Action" /> delegates.
@@ -208,11 +208,14 @@ namespace CSharpx
         public static void Match<T>(this Maybe<T> maybe, Action<T> ifJust, Action ifNothing)
         {
             T value;
+
             if (maybe.MatchJust(out value))
             {
                 ifJust(value);
+
                 return;
             }
+
             ifNothing();
         }
 
@@ -223,11 +226,14 @@ namespace CSharpx
         {
             T1 value1;
             T2 value2;
+
             if (maybe.MatchJust(out value1, out value2))
             {
                 ifJust(value1, value2);
+
                 return;
             }
+
             ifNothing();
         }
 
@@ -237,18 +243,22 @@ namespace CSharpx
         public static bool MatchJust<T1, T2>(this Maybe<Tuple<T1, T2>> maybe, out T1 value1, out T2 value2)
         {
             Tuple<T1, T2> value;
+
             if (maybe.MatchJust(out value))
             {
                 value1 = value.Item1;
                 value2 = value.Item2;
+
                 return true;
             }
+
             value1 = default;
             value2 = default;
+
             return false;
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         ///     Equivalent to monadic <see cref="CSharpx.Maybe.Return{T}" /> operation.
@@ -275,14 +285,13 @@ namespace CSharpx
             return Maybe.Map(maybe, func);
         }
 
-        #region Linq Operators
+#region Linq Operators
 
         /// <summary>
         ///     Map operation compatible with Linq.
         /// </summary>
-        public static Maybe<TResult> Select<TSource, TResult>(
-            this Maybe<TSource> maybe,
-            Func<TSource, TResult> selector)
+        public static Maybe<TResult> Select<TSource, TResult>(this Maybe<TSource> maybe,
+                                                              Func<TSource, TResult> selector)
         {
             return Maybe.Map(maybe, selector);
         }
@@ -290,22 +299,20 @@ namespace CSharpx
         /// <summary>
         ///     Bind operation compatible with Linq.
         /// </summary>
-        public static Maybe<TResult> SelectMany<TSource, TValue, TResult>(
-            this Maybe<TSource> maybe,
-            Func<TSource, Maybe<TValue>> valueSelector,
-            Func<TSource, TValue, TResult> resultSelector)
+        public static Maybe<TResult> SelectMany<TSource, TValue, TResult>(this Maybe<TSource> maybe,
+                                                                          Func<TSource, Maybe<TValue>> valueSelector,
+                                                                          Func<TSource, TValue, TResult> resultSelector)
         {
             return maybe
-                .Bind(
-                    sourceValue =>
-                        valueSelector(sourceValue)
-                            .Map(resultValue => resultSelector(sourceValue, resultValue))
-                );
+                .Bind(sourceValue =>
+                          valueSelector(sourceValue)
+                              .Map(resultValue => resultSelector(sourceValue, resultValue))
+                     );
         }
 
-        #endregion
+#endregion
 
-        #region Do Semantic
+#region Do Semantic
 
         /// <summary>
         ///     If contains a value executes an <see cref="System.Action{T}" /> delegate over it.
@@ -313,6 +320,7 @@ namespace CSharpx
         public static void Do<T>(this Maybe<T> maybe, Action<T> action)
         {
             T value;
+
             if (maybe.MatchJust(out value))
             {
                 action(value);
@@ -326,13 +334,14 @@ namespace CSharpx
         {
             T1 value1;
             T2 value2;
+
             if (maybe.MatchJust(out value1, out value2))
             {
                 action(value1, value2);
             }
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         ///     Returns <c>true</c> iffits argument is of the form <see cref="CSharpx.Just{T}" />.
@@ -357,10 +366,12 @@ namespace CSharpx
         public static T FromJust<T>(this Maybe<T> maybe)
         {
             T value;
+
             if (maybe.MatchJust(out value))
             {
                 return value;
             }
+
             return default;
         }
 
@@ -371,10 +382,12 @@ namespace CSharpx
         public static T FromJustOrFail<T>(this Maybe<T> maybe, Exception exceptionToThrow = null)
         {
             T value;
+
             if (maybe.MatchJust(out value))
             {
                 return value;
             }
+
             throw exceptionToThrow ?? new ArgumentException("Value empty.");
         }
 
@@ -384,6 +397,7 @@ namespace CSharpx
         public static T GetValueOrDefault<T>(this Maybe<T> maybe, T noneValue)
         {
             T value;
+
             return maybe.MatchJust(out value) ? value : noneValue;
         }
 
@@ -393,6 +407,7 @@ namespace CSharpx
         public static T2 MapValueOrDefault<T1, T2>(this Maybe<T1> maybe, Func<T1, T2> func, T2 noneValue)
         {
             T1 value1;
+
             return maybe.MatchJust(out value1) ? func(value1) : noneValue;
         }
 
@@ -403,6 +418,7 @@ namespace CSharpx
         public static T2 MapValueOrDefault<T1, T2>(this Maybe<T1> maybe, Func<T1, T2> func, Func<T2> noneValueFactory)
         {
             T1 value1;
+
             return maybe.MatchJust(out value1) ? func(value1) : noneValueFactory();
         }
 
@@ -413,17 +429,14 @@ namespace CSharpx
         public static IEnumerable<T> ToEnumerable<T>(this Maybe<T> maybe)
         {
             T value;
+
             if (maybe.MatchJust(out value))
             {
-                return Enumerable.Empty<T>().Concat(
-                    new[]
-                    {
-                        value,
-                    }
-                );
+                return Enumerable.Empty<T>()
+                                 .Concat(new[] { value });
             }
+
             return Enumerable.Empty<T>();
         }
     }
-
 }

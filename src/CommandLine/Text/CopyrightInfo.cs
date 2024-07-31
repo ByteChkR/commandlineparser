@@ -8,9 +8,9 @@ using System.Text;
 using CommandLine.Infrastructure;
 
 using CSharpx;
+
 namespace CommandLine.Text
 {
-
     /// <summary>
     ///     Models the copyright part of an help text.
     ///     You can assign it where you assign any <see cref="System.String" /> instance.
@@ -65,6 +65,7 @@ namespace CommandLine.Text
             {
                 throw new ArgumentException("author");
             }
+
             if (copyrightYears.Length == 0)
             {
                 throw new ArgumentOutOfRangeException("copyrightYears");
@@ -108,18 +109,25 @@ namespace CommandLine.Text
             get
             {
                 // if an exact copyright string has been specified, it takes precedence
-                Maybe<AssemblyCopyrightAttribute> copyrightAttr = ReflectionHelper.GetAttribute<AssemblyCopyrightAttribute>();
+                Maybe<AssemblyCopyrightAttribute> copyrightAttr =
+                    ReflectionHelper.GetAttribute<AssemblyCopyrightAttribute>();
+
                 switch (copyrightAttr.Tag)
                 {
                     case MaybeType.Just:
                         return new CopyrightInfo(copyrightAttr.FromJustOrFail());
                     default:
-                        Maybe<AssemblyCompanyAttribute> companyAttr = ReflectionHelper.GetAttribute<AssemblyCompanyAttribute>();
+                        Maybe<AssemblyCompanyAttribute> companyAttr =
+                            ReflectionHelper.GetAttribute<AssemblyCompanyAttribute>();
+
                         return companyAttr.IsNothing()
-                            //if both copyrightAttr and companyAttr aren't available in Assembly,don't fire Exception
-                            ? Empty
-                            // if no copyright attribute exist but a company attribute does, use it as copyright holder
-                            : new CopyrightInfo(companyAttr.FromJust().Company, DateTime.Now.Year);
+                                   //if both copyrightAttr and companyAttr aren't available in Assembly,don't fire Exception
+                                   ? Empty
+                                   // if no copyright attribute exist but a company attribute does, use it as copyright holder
+                                   : new CopyrightInfo(companyAttr.FromJust()
+                                                                  .Company,
+                                                       DateTime.Now.Year
+                                                      );
                 }
             }
         }
@@ -151,14 +159,14 @@ namespace CommandLine.Text
             }
 
             return new StringBuilder(builderSize)
-                .Append(CopyrightWord)
-                .Append(' ')
-                .Append(isSymbolUpper ? SymbolUpper : SymbolLower)
-                .Append(' ')
-                .Append(FormatYears(copyrightYears))
-                .Append(' ')
-                .Append(author)
-                .ToString();
+                   .Append(CopyrightWord)
+                   .Append(' ')
+                   .Append(isSymbolUpper ? SymbolUpper : SymbolLower)
+                   .Append(' ')
+                   .Append(FormatYears(copyrightYears))
+                   .Append(' ')
+                   .Append(author)
+                   .ToString();
         }
 
         /// <summary>
@@ -171,14 +179,19 @@ namespace CommandLine.Text
         {
             if (years.Length == 1)
             {
-                return years[0].ToString(CultureInfo.InvariantCulture);
+                return years[0]
+                    .ToString(CultureInfo.InvariantCulture);
             }
 
             StringBuilder yearsPart = new StringBuilder(years.Length * 6);
+
             for (int i = 0; i < years.Length; i++)
             {
-                yearsPart.Append(years[i].ToString(CultureInfo.InvariantCulture));
+                yearsPart.Append(years[i]
+                                     .ToString(CultureInfo.InvariantCulture)
+                                );
                 int next = i + 1;
+
                 if (next < years.Length)
                 {
                     yearsPart.Append(years[next] - years[i] > 1 ? " - " : ", ");
@@ -188,5 +201,4 @@ namespace CommandLine.Text
             return yearsPart.ToString();
         }
     }
-
 }

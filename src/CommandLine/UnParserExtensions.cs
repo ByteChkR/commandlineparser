@@ -9,9 +9,9 @@ using CommandLine.Core;
 using CommandLine.Infrastructure;
 
 using CSharpx;
+
 namespace CommandLine
 {
-
     /// <summary>
     ///     Provides settings for when formatting command line from an options instance../>.
     /// </summary>
@@ -58,6 +58,7 @@ namespace CommandLine
             get => showHidden;
             set => PopsicleSetter.Set(Consumed, ref showHidden, value);
         }
+
         /// <summary>
         ///     Gets or sets a value indicating whether unparsing process shall skip options with DefaultValue.
         /// </summary>
@@ -76,10 +77,7 @@ namespace CommandLine
         /// <returns>A properly initalized <see cref="CommandLine.UnParserSettings" /> instance.</returns>
         public static UnParserSettings WithGroupSwitchesOnly()
         {
-            return new UnParserSettings
-            {
-                GroupSwitches = true,
-            };
+            return new UnParserSettings { GroupSwitches = true };
         }
 
         /// <summary>
@@ -89,10 +87,7 @@ namespace CommandLine
         /// <returns>A properly initalized <see cref="CommandLine.UnParserSettings" /> instance.</returns>
         public static UnParserSettings WithUseEqualTokenOnly()
         {
-            return new UnParserSettings
-            {
-                UseEqualToken = true,
-            };
+            return new UnParserSettings { UseEqualToken = true };
         }
     }
 
@@ -122,7 +117,8 @@ namespace CommandLine
         /// <returns>A string[] with command line arguments.</returns>
         public static string[] FormatCommandLineArgs<T>(this Parser parser, T options)
         {
-            return parser.FormatCommandLine(options, config => { }).SplitArgs();
+            return parser.FormatCommandLine(options, config => { })
+                         .SplitArgs();
         }
 
         /// <summary>
@@ -151,79 +147,92 @@ namespace CommandLine
             StringBuilder builder = new StringBuilder();
 
             type.GetVerbSpecification()
-                .MapValueOrDefault(verb => builder.Append(verb.Name).Append(' '), builder);
+                .MapValueOrDefault(verb => builder.Append(verb.Name)
+                                                  .Append(' '),
+                                   builder
+                                  );
 
             var specs =
                 (from info in
-                        type.GetSpecifications(
-                            pi => new
-                            {
-                                Specification = Specification.FromProperty(pi),
-                                Value = pi.GetValue(options, null).NormalizeValue(),
-                                PropertyValue = pi.GetValue(options, null),
-                            }
-                        )
-                    where !info.PropertyValue.IsEmpty(info.Specification, settings.SkipDefault)
-                    select info)
+                     type.GetSpecifications(pi => new
+                                            {
+                                                Specification = Specification.FromProperty(pi),
+                                                Value = pi.GetValue(options, null)
+                                                          .NormalizeValue(),
+                                                PropertyValue = pi.GetValue(options, null),
+                                            }
+                                           )
+                 where !info.PropertyValue.IsEmpty(info.Specification, settings.SkipDefault)
+                 select info)
                 .Memoize();
 
             var allOptSpecs = from info in specs.Where(i => i.Specification.Tag == SpecificationType.Option)
-                let o = (OptionSpecification)info.Specification
-                where o.TargetType != TargetType.Switch ||
-                      o.TargetType == TargetType.Switch && o.FlagCounter && (int)info.Value > 0 ||
-                      o.TargetType == TargetType.Switch && (bool)info.Value
-                where !o.Hidden || settings.ShowHidden
-                orderby o.UniqueName()
-                select info;
+                              let o = (OptionSpecification)info.Specification
+                              where o.TargetType != TargetType.Switch ||
+                                    (o.TargetType == TargetType.Switch && o.FlagCounter && (int)info.Value > 0) ||
+                                    (o.TargetType == TargetType.Switch && (bool)info.Value)
+                              where !o.Hidden || settings.ShowHidden
+                              orderby o.UniqueName()
+                              select info;
 
             var shortSwitches = from info in allOptSpecs
-                let o = (OptionSpecification)info.Specification
-                where o.TargetType == TargetType.Switch
-                where o.ShortName.Length > 0
-                orderby o.UniqueName()
-                select info;
+                                let o = (OptionSpecification)info.Specification
+                                where o.TargetType == TargetType.Switch
+                                where o.ShortName.Length > 0
+                                orderby o.UniqueName()
+                                select info;
 
             var optSpecs = settings.GroupSwitches
-                ? allOptSpecs.Where(info => !shortSwitches.Contains(info))
-                : allOptSpecs;
+                               ? allOptSpecs.Where(info => !shortSwitches.Contains(info))
+                               : allOptSpecs;
 
             var valSpecs = from info in specs.Where(i => i.Specification.Tag == SpecificationType.Value)
-                let v = (ValueSpecification)info.Specification
-                orderby v.Index
-                select info;
+                           let v = (ValueSpecification)info.Specification
+                           orderby v.Index
+                           select info;
 
             builder = settings.GroupSwitches && shortSwitches.Any()
-                ? builder.Append('-').Append(
-                    string.Join(
-                        string.Empty,
-                        shortSwitches.Select(
-                            info =>
-                            {
-                                OptionSpecification o = (OptionSpecification)info.Specification;
-                                return o.FlagCounter
-                                    ? string.Concat(Enumerable.Repeat(o.ShortName, (int)info.Value))
-                                    : o.ShortName;
-                            }
-                        ).ToArray()
-                    )
-                ).Append(' ')
-                : builder;
-            optSpecs.ForEach(
-                opt =>
-                    builder
-                        .Append(FormatOption((OptionSpecification)opt.Specification, opt.Value, settings))
-                        .Append(' ')
-            );
+                          ? builder.Append('-')
+                                   .Append(string.Join(string.Empty,
+                                                       shortSwitches.Select(info =>
+                                                                            {
+                                                                                OptionSpecification o =
+                                                                                    (OptionSpecification)info
+                                                                                        .Specification;
+
+                                                                                return o.FlagCounter
+                                                                                    ? string
+                                                                                        .Concat(Enumerable
+                                                                                                .Repeat(o.ShortName,
+                                                                                                     (int)info.Value
+                                                                                                    )
+                                                                                            )
+                                                                                    : o.ShortName;
+                                                                            }
+                                                                           )
+                                                                    .ToArray()
+                                                      )
+                                          )
+                                   .Append(' ')
+                          : builder;
+
+            optSpecs.ForEach(opt =>
+                                 builder
+                                     .Append(FormatOption((OptionSpecification)opt.Specification, opt.Value, settings))
+                                     .Append(' ')
+                            );
 
             builder.AppendWhen(valSpecs.Any() && parser.Settings.EnableDashDash, "-- ");
 
-            valSpecs.ForEach(
-                val => builder.Append(FormatValue(val.Specification, val.Value)).Append(' ')
-            );
+            valSpecs.ForEach(val => builder.Append(FormatValue(val.Specification, val.Value))
+                                           .Append(' ')
+                            );
 
             return builder
-                .ToString().TrimEnd(' ');
+                   .ToString()
+                   .TrimEnd(' ');
         }
+
         /// <summary>
         ///     Format a command line argument string[] from a parsed instance.
         /// </summary>
@@ -235,36 +244,49 @@ namespace CommandLine
         ///     aspects and behaviors of the unparsersing process.
         /// </param>
         /// <returns>A string[] with command line arguments.</returns>
-        public static string[] FormatCommandLineArgs<T>(this Parser parser, T options, Action<UnParserSettings> configuration)
+        public static string[] FormatCommandLineArgs<T>(this Parser parser,
+                                                        T options,
+                                                        Action<UnParserSettings> configuration)
         {
-            return FormatCommandLine(parser, options, configuration).SplitArgs();
+            return FormatCommandLine(parser, options, configuration)
+                .SplitArgs();
         }
+
         private static string FormatValue(Specification spec, object value)
         {
             StringBuilder builder = new StringBuilder();
+
             switch (spec.TargetType)
             {
                 case TargetType.Scalar:
                     builder.Append(FormatWithQuotesIfString(value));
+
                     break;
                 case TargetType.Sequence:
                     char sep = spec.SeperatorOrSpace();
+
                     Func<object, object> format = v
                         => sep == ' ' ? FormatWithQuotesIfString(v) : v;
                     IEnumerator e = ((IEnumerable)value).GetEnumerator();
+
                     while (e.MoveNext())
                     {
-                        builder.Append(format(e.Current)).Append(sep);
+                        builder.Append(format(e.Current))
+                               .Append(sep);
                     }
+
                     builder.TrimEndIfMatch(sep);
+
                     break;
             }
+
             return builder.ToString();
         }
 
         private static object FormatWithQuotesIfString(object value)
         {
             string s = value.ToString();
+
             if (!string.IsNullOrEmpty(s) && !s.Contains("\"") && s.Contains(" "))
             {
                 return $"\"{s}\"";
@@ -274,43 +296,47 @@ namespace CommandLine
                 => v.Contains("\"") ? v.Replace("\"", "\\\"") : v;
 
             return s.ToMaybe()
-                .MapValueOrDefault(
-                    v => v.Contains(' ') || v.Contains("\"")
-                        ? "\"".JoinTo(doubQt(v), "\"")
-                        : v,
-                    value
-                );
+                    .MapValueOrDefault(v => v.Contains(' ') || v.Contains("\"")
+                                                ? "\"".JoinTo(doubQt(v), "\"")
+                                                : v,
+                                       value
+                                      );
         }
 
         private static char SeperatorOrSpace(this Specification spec)
         {
             return (spec as OptionSpecification).ToMaybe()
-                .MapValueOrDefault(o => o.Separator != '\0' ? o.Separator : ' ', ' ');
+                                                .MapValueOrDefault(o => o.Separator != '\0' ? o.Separator : ' ', ' ');
         }
 
         private static string FormatOption(OptionSpecification spec, object value, UnParserSettings settings)
         {
             return new StringBuilder()
-                .Append(spec.FormatName(value, settings))
-                .AppendWhen(spec.TargetType != TargetType.Switch, FormatValue(spec, value))
-                .ToString();
+                   .Append(spec.FormatName(value, settings))
+                   .AppendWhen(spec.TargetType != TargetType.Switch, FormatValue(spec, value))
+                   .ToString();
         }
 
         private static string FormatName(this OptionSpecification optionSpec, object value, UnParserSettings settings)
         {
             // Have a long name and short name not preferred? Go with long! 
             // No short name? Has to be long!
-            bool longName = optionSpec.LongName.Length > 0 && !settings.PreferShortName || optionSpec.ShortName.Length == 0;
+            bool longName = (optionSpec.LongName.Length > 0 && !settings.PreferShortName) ||
+                            optionSpec.ShortName.Length == 0;
 
             string formattedName =
-                new StringBuilder(
-                        longName
-                            ? "--".JoinTo(optionSpec.LongName)
-                            : "-".JoinTo(optionSpec.ShortName)
-                    )
-                    .AppendWhen(optionSpec.TargetType != TargetType.Switch, longName && settings.UseEqualToken ? "=" : " ")
+                new StringBuilder(longName
+                                      ? "--".JoinTo(optionSpec.LongName)
+                                      : "-".JoinTo(optionSpec.ShortName)
+                                 )
+                    .AppendWhen(optionSpec.TargetType != TargetType.Switch,
+                                longName && settings.UseEqualToken ? "=" : " "
+                               )
                     .ToString();
-            return optionSpec.FlagCounter ? string.Join(" ", Enumerable.Repeat(formattedName, (int)value)) : formattedName;
+
+            return optionSpec.FlagCounter
+                       ? string.Join(" ", Enumerable.Repeat(formattedName, (int)value))
+                       : formattedName;
         }
 
         private static object NormalizeValue(this object value)
@@ -337,6 +363,7 @@ namespace CommandLine
             {
                 return true;
             }
+
             if (Nullable.GetUnderlyingType(specification.ConversionType) != null)
             {
                 return false; //nullable
@@ -345,23 +372,31 @@ namespace CommandLine
 #if !SKIP_FSHARP
             if (ReflectionHelper.IsFSharpOptionType(value.GetType()) && !FSharpOptionHelper.IsSome(value)) return true;
 #endif
-            if (value is ValueType && value.Equals(value.GetType().GetDefaultValue()))
+            if (value is ValueType &&
+                value.Equals(value.GetType()
+                                  .GetDefaultValue()
+                            ))
             {
                 return true;
             }
+
             if (value is string && ((string)value).Length == 0)
             {
                 return true;
             }
-            if (value is IEnumerable && !((IEnumerable)value).GetEnumerator().MoveNext())
+
+            if (value is IEnumerable &&
+                !((IEnumerable)value).GetEnumerator()
+                                     .MoveNext())
             {
                 return true;
             }
+
             return false;
         }
 
 
-        #region splitter
+#region splitter
 
         /// <summary>
         ///     Returns a string array that contains the substrings in this instance that are delimited by space considering string
@@ -378,25 +413,26 @@ namespace CommandLine
             }
 
             bool inQuote = false;
-            char[] chars = command.ToCharArray().Select(
-                v =>
-                {
-                    if (v == '"')
-                    {
-                        inQuote = !inQuote;
-                    }
-                    return !inQuote && v == ' ' ? '\n' : v;
-                }
-            ).ToArray();
+
+            char[] chars = command.ToCharArray()
+                                  .Select(v =>
+                                          {
+                                              if (v == '"')
+                                              {
+                                                  inQuote = !inQuote;
+                                              }
+
+                                              return !inQuote && v == ' ' ? '\n' : v;
+                                          }
+                                         )
+                                  .ToArray();
 
             return new string(chars).Split('\n')
-                .Select(x => keepQuote ? x : x.Trim('"'))
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .ToArray();
+                                    .Select(x => keepQuote ? x : x.Trim('"'))
+                                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                                    .ToArray();
         }
 
-        #endregion
-
+#endregion
     }
-
 }

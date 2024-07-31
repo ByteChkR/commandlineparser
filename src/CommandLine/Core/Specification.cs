@@ -8,9 +8,9 @@ using System.Reflection;
 using CommandLine.Infrastructure;
 
 using CSharpx;
+
 namespace CommandLine.Core
 {
-
     internal enum SpecificationType
     {
         Option,
@@ -26,30 +26,29 @@ namespace CommandLine.Core
 
     internal abstract class Specification
     {
-
         protected Specification(SpecificationType tag,
-            bool required,
-            Maybe<int> min,
-            Maybe<int> max,
-            Maybe<object> defaultValue,
-            string helpText,
-            string metaValue,
-            IEnumerable<string> enumValues,
-            Type conversionType,
-            TargetType targetType,
-            bool hidden = false)
+                                bool required,
+                                Maybe<int> min,
+                                Maybe<int> max,
+                                Maybe<object> defaultValue,
+                                string helpText,
+                                string metaValue,
+                                IEnumerable<string> enumValues,
+                                Type conversionType,
+                                TargetType targetType,
+                                bool hidden = false)
         {
-            this.Tag = tag;
-            this.Required = required;
-            this.Min = min;
-            this.Max = max;
-            this.DefaultValue = defaultValue;
-            this.ConversionType = conversionType;
-            this.TargetType = targetType;
-            this.HelpText = helpText;
-            this.MetaValue = metaValue;
-            this.EnumValues = enumValues;
-            this.Hidden = hidden;
+            Tag = tag;
+            Required = required;
+            Min = min;
+            Max = max;
+            DefaultValue = defaultValue;
+            ConversionType = conversionType;
+            TargetType = targetType;
+            HelpText = helpText;
+            MetaValue = metaValue;
+            EnumValues = enumValues;
+            Hidden = hidden;
         }
 
         public SpecificationType Tag { get; }
@@ -79,35 +78,37 @@ namespace CommandLine.Core
         {
             object[] attrs = property.GetCustomAttributes(true);
             IEnumerable<OptionAttribute> oa = attrs.OfType<OptionAttribute>();
+
             if (oa.Count() == 1)
             {
-                OptionSpecification spec = OptionSpecification.FromAttribute(
-                    oa.Single(),
-                    property.PropertyType,
-                    ReflectionHelper.GetNamesOfEnum(property.PropertyType)
-                );
+                OptionSpecification spec = OptionSpecification.FromAttribute(oa.Single(),
+                                                                             property.PropertyType,
+                                                                             ReflectionHelper
+                                                                                 .GetNamesOfEnum(property.PropertyType)
+                                                                            );
 
                 if (spec.ShortName.Length == 0 && spec.LongName.Length == 0)
                 {
                     return spec.WithLongName(property.Name.ToLowerInvariant());
                 }
+
                 return spec;
             }
 
             IEnumerable<ValueAttribute> va = attrs.OfType<ValueAttribute>();
+
             if (va.Count() == 1)
             {
-                return ValueSpecification.FromAttribute(
-                    va.Single(),
-                    property.PropertyType,
-                    property.PropertyType.GetTypeInfo().IsEnum
-                        ? Enum.GetNames(property.PropertyType)
-                        : Enumerable.Empty<string>()
-                );
+                return ValueSpecification.FromAttribute(va.Single(),
+                                                        property.PropertyType,
+                                                        property.PropertyType.GetTypeInfo()
+                                                                .IsEnum
+                                                            ? Enum.GetNames(property.PropertyType)
+                                                            : Enumerable.Empty<string>()
+                                                       );
             }
 
             throw new InvalidOperationException();
         }
     }
-
 }

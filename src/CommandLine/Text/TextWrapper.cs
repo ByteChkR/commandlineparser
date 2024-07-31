@@ -4,15 +4,16 @@ using System.Linq;
 using System.Text;
 
 using CommandLine.Infrastructure;
+
 namespace CommandLine.Text
 {
-
     /// <summary>
     ///     A utility class to word-wrap and indent blocks of text
     /// </summary>
     public class TextWrapper
     {
         private string[] lines;
+
         public TextWrapper(string input)
         {
             //start by splitting at newlines and then reinserting the newline as a separate word
@@ -20,14 +21,10 @@ namespace CommandLine.Text
             //be able to handle both.  We can't use Environment.NewLine because that changes at
             //_runtime_ and may not match the line-break style that was compiled in
             lines = input
-                .Replace("\r", "")
-                .Split(
-                    new[]
-                    {
-                        '\n',
-                    },
-                    StringSplitOptions.None
-                );
+                    .Replace("\r", "")
+                    .Split(new[] { '\n' },
+                           StringSplitOptions.None
+                          );
         }
 
         /// <summary>
@@ -50,9 +47,11 @@ namespace CommandLine.Text
         {
             //ensure we always use at least 1 column even if the client has told us there's no space available
             columnWidth = Math.Max(1, columnWidth);
+
             lines = lines
-                .SelectMany(line => WordWrapLine(line, columnWidth))
-                .ToArray();
+                    .SelectMany(line => WordWrapLine(line, columnWidth))
+                    .ToArray();
+
             return this;
         }
 
@@ -64,8 +63,9 @@ namespace CommandLine.Text
         public TextWrapper Indent(int numberOfSpaces)
         {
             lines = lines
-                .Select(line => numberOfSpaces.Spaces() + line)
-                .ToArray();
+                    .Select(line => numberOfSpaces.Spaces() + line)
+                    .ToArray();
+
             return this;
         }
 
@@ -93,9 +93,9 @@ namespace CommandLine.Text
         public static string WrapAndIndentText(string input, int indentLevel, int columnWidth)
         {
             return new TextWrapper(input)
-                .WordWrap(columnWidth)
-                .Indent(indentLevel)
-                .ToText();
+                   .WordWrap(columnWidth)
+                   .Indent(indentLevel)
+                   .ToText();
         }
 
 
@@ -109,12 +109,15 @@ namespace CommandLine.Text
             columnWidth -= currentIndentLevel;
 
             return unindentedLine.Split(' ')
-                .Aggregate(
-                    new List<StringBuilder>(),
-                    (lineList, word) => AddWordToLastLineOrCreateNewLineIfNecessary(lineList, word, columnWidth)
-                )
-                .Select(builder => currentIndentLevel.Spaces() + builder.ToString().TrimEnd())
-                .ToArray();
+                                 .Aggregate(new List<StringBuilder>(),
+                                            (lineList, word) =>
+                                                AddWordToLastLineOrCreateNewLineIfNecessary(lineList, word, columnWidth)
+                                           )
+                                 .Select(builder => currentIndentLevel.Spaces() +
+                                                    builder.ToString()
+                                                           .TrimEnd()
+                                        )
+                                 .ToArray();
         }
 
         /// <summary>
@@ -128,19 +131,25 @@ namespace CommandLine.Text
         ///     empty strings allow us to preserve indentation and extra spaces within a line.
         /// </remarks>
         /// <returns>The same list as is passed in</returns>
-        private static List<StringBuilder> AddWordToLastLineOrCreateNewLineIfNecessary(List<StringBuilder> lines, string word, int columnWidth)
+        private static List<StringBuilder> AddWordToLastLineOrCreateNewLineIfNecessary(
+            List<StringBuilder> lines,
+            string word,
+            int columnWidth)
         {
             //The current indentation level is based on the previous line but we need to be careful
-            string previousLine = lines.LastOrDefault()?.ToString() ?? string.Empty;
+            string previousLine = lines.LastOrDefault()
+                                       ?.ToString() ??
+                                  string.Empty;
 
-            bool wouldWrap = !lines.Any() || word.Length > 0 && previousLine.Length + word.Length > columnWidth;
+            bool wouldWrap = !lines.Any() || (word.Length > 0 && previousLine.Length + word.Length > columnWidth);
 
             if (!wouldWrap)
             {
                 //The usual case is we just append the 'word' and a space to the current line
                 //Note that trailing spaces will get removed later when we turn the line list 
                 //into a single string
-                lines.Last().Append(word + ' ');
+                lines.Last()
+                     .Append(word + ' ');
             }
             else
             {
@@ -160,6 +169,7 @@ namespace CommandLine.Text
                 }
                 while (word.Length > 0);
             }
+
             return lines;
         }
 
@@ -170,18 +180,18 @@ namespace CommandLine.Text
         private static string RightString(string str, int n)
         {
             return n >= str.Length || str.Length == 0
-                ? string.Empty
-                : str.Substring(n);
+                       ? string.Empty
+                       : str.Substring(n);
         }
+
         /// <summary>
         ///     Return the left part of a string in a way that compensates for Substring's deficiencies
         /// </summary>
         private static string LeftString(string str, int n)
         {
             return n >= str.Length || str.Length == 0
-                ? str
-                : str.Substring(0, n);
+                       ? str
+                       : str.Substring(0, n);
         }
     }
-
 }

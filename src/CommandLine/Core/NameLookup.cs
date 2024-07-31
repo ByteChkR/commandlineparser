@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using CSharpx;
+
 namespace CommandLine.Core
 {
-
     internal enum NameLookupResult
     {
         NoOptionFound,
@@ -17,28 +17,31 @@ namespace CommandLine.Core
 
     internal static class NameLookup
     {
-        public static NameLookupResult Contains(string name, IEnumerable<OptionSpecification> specifications, StringComparer comparer)
+        public static NameLookupResult Contains(string name,
+                                                IEnumerable<OptionSpecification> specifications,
+                                                StringComparer comparer)
         {
-            OptionSpecification option = specifications.FirstOrDefault(a => name.MatchName(a.ShortName, a.LongName, comparer));
+            OptionSpecification option =
+                specifications.FirstOrDefault(a => name.MatchName(a.ShortName, a.LongName, comparer));
+
             if (option == null)
             {
                 return NameLookupResult.NoOptionFound;
             }
-            return option.ConversionType == typeof(bool) || option.ConversionType == typeof(int) && option.FlagCounter
-                ? NameLookupResult.BooleanOptionFound
-                : NameLookupResult.OtherOptionFound;
+
+            return option.ConversionType == typeof(bool) || (option.ConversionType == typeof(int) && option.FlagCounter)
+                       ? NameLookupResult.BooleanOptionFound
+                       : NameLookupResult.OtherOptionFound;
         }
 
         public static Maybe<char> HavingSeparator(string name,
-            IEnumerable<OptionSpecification> specifications,
-            StringComparer comparer)
+                                                  IEnumerable<OptionSpecification> specifications,
+                                                  StringComparer comparer)
         {
-            return specifications.SingleOrDefault(
-                    a => name.MatchName(a.ShortName, a.LongName, comparer) && a.Separator != '\0'
-                )
-                .ToMaybe()
-                .MapValueOrDefault(spec => Maybe.Just(spec.Separator), Maybe.Nothing<char>());
+            return specifications
+                   .SingleOrDefault(a => name.MatchName(a.ShortName, a.LongName, comparer) && a.Separator != '\0')
+                   .ToMaybe()
+                   .MapValueOrDefault(spec => Maybe.Just(spec.Separator), Maybe.Nothing<char>());
         }
     }
-
 }

@@ -3,15 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace CommandLine.Text
 {
-
     /// <summary>
     ///     Models a command line usage example.
     /// </summary>
     public sealed class Example : IEquatable<Example>
     {
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="CommandLine.Text.Example" /> class.
         /// </summary>
@@ -27,18 +26,20 @@ namespace CommandLine.Text
             {
                 throw new ArgumentException("helpText can't be null or empty", "helpText");
             }
+
             if (formatStyles == null)
             {
                 throw new ArgumentNullException("formatStyles");
             }
+
             if (sample == null)
             {
                 throw new ArgumentNullException("sample");
             }
 
-            this.HelpText = helpText;
-            this.FormatStyles = formatStyles;
-            this.Sample = sample;
+            HelpText = helpText;
+            FormatStyles = formatStyles;
+            Sample = sample;
         }
 
         /// <summary>
@@ -51,14 +52,10 @@ namespace CommandLine.Text
         /// </param>
         /// <param name="sample">A sample instance.</param>
         public Example(string helpText, UnParserSettings formatStyle, object sample)
-            : this(
-                helpText,
-                new[]
-                {
-                    formatStyle,
-                },
-                sample
-            ) { }
+            : this(helpText,
+                   new[] { formatStyle },
+                   sample
+                  ) { }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="CommandLine.Text.Example" /> class.
@@ -83,6 +80,8 @@ namespace CommandLine.Text
         /// </summary>
         public object Sample { get; }
 
+#region IEquatable<Example> Members
+
         /// <summary>
         ///     Returns a value that indicates whether the current instance and a specified <see cref="CommandLine.Text.Example" />
         ///     have the same value.
@@ -102,8 +101,12 @@ namespace CommandLine.Text
                 return false;
             }
 
-            return HelpText.Equals(other.HelpText) && FormatStyles.SequenceEqual(other.FormatStyles) && Sample.Equals(other.Sample);
+            return HelpText.Equals(other.HelpText) &&
+                   FormatStyles.SequenceEqual(other.FormatStyles) &&
+                   Sample.Equals(other.Sample);
         }
+
+#endregion
 
         /// <summary>
         ///     Determines whether the specified <see cref="System.Object" /> is equal to the current <see cref="System.Object" />.
@@ -118,6 +121,7 @@ namespace CommandLine.Text
         public override bool Equals(object obj)
         {
             Example other = obj as Example;
+
             if (other != null)
             {
                 return Equals(other);
@@ -132,12 +136,7 @@ namespace CommandLine.Text
         /// <remarks>A hash code for the current <see cref="System.Object" />.</remarks>
         public override int GetHashCode()
         {
-            return new
-            {
-                HelpText,
-                FormatStyles,
-                Sample,
-            }.GetHashCode();
+            return new { HelpText, FormatStyles, Sample }.GetHashCode();
         }
     }
 
@@ -146,15 +145,8 @@ namespace CommandLine.Text
         public static IEnumerable<UnParserSettings> GetFormatStylesOrDefault(this Example example)
         {
             return example.FormatStyles.Any()
-                ? example.FormatStyles
-                : new[]
-                {
-                    new UnParserSettings
-                    {
-                        Consumed = true,
-                    },
-                };
+                       ? example.FormatStyles
+                       : new[] { new UnParserSettings { Consumed = true } };
         }
     }
-
 }
