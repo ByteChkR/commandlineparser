@@ -64,7 +64,7 @@ namespace CommandLine.Infrastructure
 #endif
 
             return attributes.Length > 0
-                       ? Maybe.Just(attributes[0])
+                       ? Maybe.Just((TAttribute)attributes[0])
                        : Maybe.Nothing<TAttribute>();
         }
 
