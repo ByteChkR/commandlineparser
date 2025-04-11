@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<AssemblyName>CommandLine</AssemblyName>
 		<OutputType>Library</OutputType>
-		<TargetFrameworks>netstandard2.0;net40;net45;net461</TargetFrameworks>
 		<DefineConstants>$(DefineConstants);CSX_EITHER_INTERNAL;CSX_REM_EITHER_BEYOND_2;CSX_ENUM_INTERNAL;ERRH_INTERNAL;CSX_MAYBE_INTERNAL;CSX_REM_EITHER_FUNC;CSX_REM_CRYPTORAND;ERRH_ADD_MAYBE_METHODS</DefineConstants>
 		<DefineConstants Condition="'$(BuildTarget)' != 'fsharp'">$(DefineConstants);SKIP_FSHARP</DefineConstants>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -26,6 +25,7 @@
 		<LangVersion>8.0</LangVersion>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<TargetFramework>netstandard2.1</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(BuildTarget)' != 'fsharp'">
