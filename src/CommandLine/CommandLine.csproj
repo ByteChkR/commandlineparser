@@ -45,7 +45,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
-		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0"/>
+		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="10.0.102" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net40' and '$(BuildTarget)' == 'fsharp'">
 		<PackageReference Include="FSharp.Core" Version="4.0.0.1" Condition="'$(BuildTarget)' == 'fsharp'"/>
